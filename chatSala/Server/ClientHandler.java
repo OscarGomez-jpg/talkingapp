@@ -26,20 +26,35 @@ class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        String message;
-        //implementar la logica que permita soliciar a un cliente un nombre de usuario 
-        System.out.println("Username: ");
-        Scanner sc = new Scanner(System.in);
-        clientName = sc.nextLine();
-        //verificar que no exista en chatters
-        while(clientes.){
+        try {
+            String message;
+            //implementar la logica que permita soliciar a un cliente un nombre de usuario 
+            System.out.println("Username: ");
+            Scanner sc = new Scanner(System.in);
+            clientName = sc.nextLine();
+            //verificar que no exista en chatters
+            while(clientes.nameExists(clientName)==true){
+                out.println("REJECTED"); // Notify client that the username is rejected
+                out.println("Username already exists. Please choose another one:");
+                clientName = sc.nextLine();
+            }
+            out.println("ACCEPTED");
 
-        }
-        //notificar a los demas clientes que un nuevo usuario se ha unido
-        //agregar al nuevo usuario a chatters junto con su canal de salida out
-        //notificar al cliente que ha sido aceptado
+            //notificar a los demas clientes que un nuevo usuario se ha unido
+            clientes.broadcastMessage(clientName + " has joined the chat.");
 
-        //ante un nuevo mensaje de ese cliente, enviar el mensaje a todos los usuarios
-        
+            //agregar al nuevo usuario a chatters junto con su canal de salida out
+            Person newCLient = new Person(clientName, out)
+            clientes.addUser(newCLient);
+
+            //notificar al cliente que ha sido aceptado
+            newCLient.getOut().println("ACCEPTED");
+
+            //ante un nuevo mensaje de ese cliente, enviar el mensaje a todos los usuarios
+            message = sc.nextLine();
+            clientes.broadcastMessage(message);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
     }
 }

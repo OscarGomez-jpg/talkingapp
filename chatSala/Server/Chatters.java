@@ -17,6 +17,16 @@ public class Chatters {
         return clientes.contains(user);
     }
 
+    public boolean nameExists(String name) {
+        for (Person cliente : clientes) {
+            if (name.equalsIgnoreCase(cliente.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // Metodo para agregar un usuario nuevo
     public void addUser(Person user) {
         clientes.add(user);
