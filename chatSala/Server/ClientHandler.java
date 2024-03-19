@@ -13,7 +13,15 @@ class ClientHandler implements Runnable {
     Chatters clientes;
     public ClientHandler(Socket socket,Chatters clientes) {
         //asignar los objetos que llegan a su respectivo atributo en la clase
+        this.clientSocket = socket;
+        this.clientes = clientes;
         //crear canales de entrada in y de salida out para la comunicacion
+        try {
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            out = new PrintWriter(clientSocket.getOutputStream(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
