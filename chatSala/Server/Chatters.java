@@ -5,21 +5,32 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+public class Chatters {
+    private Set<Person> clientes;
 
-public class Chatters{
-   //tendra una lista de personas que seran nuestros clientes
-   //cada persona tiene un nombre y un canal para enviarle mensajes
-
-    private Set<Person> clientes = new HashSet<>();
-     
-    public Chatters(){
+    public Chatters() {
+        clientes = new HashSet<>();
     }
-    //metodo para verificar si un usuario existe, retorna true si existe
 
-    //metodo para agregar un usuario nuevo
+    // Metodo para verificar si un usuario existe, retorna true si existe
+    public boolean userExists(Person user) {
+        return clientes.contains(user);
+    }
 
-    //metodo para eliminar un usuario
+    // Metodo para agregar un usuario nuevo
+    public void addUser(Person user) {
+        clientes.add(user);
+    }
 
-    //metodo para enviar un mensaje a todos los usuarios  
+    // Metodo para eliminar un usuario
+    public void removeUser(Person user) {
+        clientes.remove(user);
+    }
 
+    // Metodo para enviar un mensaje a todos los usuarios
+    public void broadcastMessage(String message) {
+        for (Person user : clientes) {
+            user.getOut().println(message);
+        }
+    }
 }
