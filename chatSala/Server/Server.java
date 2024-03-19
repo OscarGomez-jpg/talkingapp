@@ -20,9 +20,8 @@ public class Server {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Nuevo cliente conectado: " + clientSocket);
                 
-                //crea el objeto para gestionar al cliente y le envia la informacion necesaria
-                //inicia el hilo para ese cliente
-                
+                ClientHandler newClient = new ClientHandler(clientSocket, clientes);
+                newClient.run();
             }
         } catch (IOException e) {
             e.printStackTrace();
