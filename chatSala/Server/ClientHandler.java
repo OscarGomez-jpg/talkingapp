@@ -28,7 +28,13 @@ class ClientHandler implements Runnable {
     public void run() {
         String message;
         //implementar la logica que permita soliciar a un cliente un nombre de usuario 
+        System.out.println("Username: ");
+        Scanner sc = new Scanner(System.in);
+        clientName = sc.nextLine();
         //verificar que no exista en chatters
+        while(clientes.){
+
+        }
         //notificar a los demas clientes que un nuevo usuario se ha unido
         //agregar al nuevo usuario a chatters junto con su canal de salida out
         //notificar al cliente que ha sido aceptado
