@@ -10,28 +10,58 @@ public class Client {
             Socket socket = new Socket(SERVER_IP, PORT);
             System.out.println("Conectado al servidor.");
 
+            // Canal de entrada para el usuario
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+
+            // Obtener el nombre de usuario
+            String username;
+            do {
+                System.out.print("Ingrese su nombre de usuario: ");
+                username = userInput.readLine();
+                if (username.trim().isEmpty()) {
+                    System.out.println("El nombre de usuario no puede estar vacío.");
+                }
+            } while (username.trim().isEmpty());
+
+            // Enviar el nombre de usuario al servidor
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            out.println(username);
+
+            // Crear el objeto Lector y lanzar un hilo para leer mensajes del servidor
+            Reader reader = new Reader(socket);
+            Thread readerThread = new Thread(reader);
+            readerThread.start();
+
+            // Estar atento a la entrada del usuario para enviar mensajes al servidor
             String message;
-            //canal de entrada para el usuario
-            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); 
-            
-            //usando el socket, crear los canales de entrada in y salida out
-                      
-            //solicitar al usuario un alias, o nombre y enviarlo al servidor
-            //no debe salir de este bloque hasta que el nombre no sea aceptado
-            //al ser aceptado notificar, de lo contrario seguir pidiendo un alias
-
-
-                 
-            //creamos el objeto Lector e iniciamos el hilo que nos permitira estar atentos a los mensajes
-            //que llegan del servidor
-            //inicar el hilo
-
-
-            //estar atento a la entrada del usuario para poner los mensajes en el canal de salida out
-            
+            while ((message = userInput.readLine()) != null) {
+                out.println(message); // Enviar mensaje al servidor
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    // Clase interna para leer mensajes del servidor en un hilo separado
+    static class Reader implements Runnable {
+        private Socket socket;
+
+        public Reader(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String message;
+                while ((message = in.readLine()) != null) {
+                    System.out.println(message); // Mostrar mensaje del servidor al usuario
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
