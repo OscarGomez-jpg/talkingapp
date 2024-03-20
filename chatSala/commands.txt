@@ -1,0 +1,5 @@
+Compilar el servidor:
+javac -cp Server Server/Server.java -d bin
+
+Compilar el cliente:
+javac -cp Client Client/Client.java -d bin
