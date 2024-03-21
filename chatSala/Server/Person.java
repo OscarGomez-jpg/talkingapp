@@ -1,6 +1,4 @@
-import java.util.Set;
 import java.io.PrintWriter;
-import java.net.Socket;
 
 //objeto que representa un cliente o usuario o persona en el chat
 public class Person {
@@ -19,6 +17,4 @@ public class Person {
     public PrintWriter getOut() {
         return out;
     }
-
-    
 }

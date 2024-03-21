@@ -1,9 +1,5 @@
 import java.util.Set;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 public class Chatters {
     private Set<Person> clientes;
@@ -38,9 +34,18 @@ public class Chatters {
     }
 
     // Metodo para enviar un mensaje a todos los usuarios
-    public void broadcastMessage(String message) {
-        for (Person user : clientes) {
-            user.getOut().println(message);
+    public void broadcastMessage(String emisor, String message) {
+        synchronized (clientes) {
+            for (Person user : clientes) {
+                if (!user.getName().equalsIgnoreCase(emisor)) {
+                    try {
+                        user.getOut().println(message);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // Manejar cualquier excepción que pueda ocurrir al enviar el mensaje al usuario
+                    }
+                }
+            }
         }
     }
 }

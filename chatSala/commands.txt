@@ -1,5 +1,11 @@
 Compilar el servidor:
 javac -cp Server Server/Server.java -d bin
 
+Ejecutar el servidor:
+java -cp bin Server
+
 Compilar el cliente:
 javac -cp Client Client/Client.java -d bin
+
+Ejecutar el cliente:
+java -cp bin Client

@@ -25,9 +25,7 @@ class ClientHandler implements Runnable {
         }
     }
 
-    @Override
-    public void run() {
-        String message;
+    private void logIn() {
         // implementar la logica que permita soliciar a un cliente un nombre de usuario
         try {
             clientName = in.readLine();
@@ -36,30 +34,46 @@ class ClientHandler implements Runnable {
         }
 
         // verificar que no exista en chatters
-        while (clientes.nameExists(clientName) == true) {
-            out.println("REJECTED"); // Notify client that the username is rejected
-            out.println("Username already exists. Please choose another one:");
-        }
-        out.println("ACCEPTED");
+        // while (clientes.nameExists(clientName)) {
+        // out.println("REJECTED"); // Notify client that the username is rejected
+        // out.println("Username already exists. Please choose another one:");
+        // try {
+        // clientName = in.readLine();
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
+        // }
 
         // notificar a los demas clientes que un nuevo usuario se ha unido
-        clientes.broadcastMessage(clientName + " has joined the chat.");
-
-        // agregar al nuevo usuario a chatters junto con su canal de salida out
+        clientes.broadcastMessage(clientName, clientName + " has joined the chat.");
         Person newCLient = new Person(clientName, out);
         clientes.addUser(newCLient);
+        out.println("ACCEPTED");
+    }
 
-        // notificar al cliente que ha sido aceptado
-        newCLient.getOut().println("ACCEPTED");
-
+    private void chat() {
         // ante un nuevo mensaje de ese cliente, enviar el mensaje a todos los usuarios
         try {
-            while ((message = in.readLine()) != null) {
+            String message;
+            while (true) {
+                if (clientSocket.isClosed()) {
+                    break;
+                }
                 message = in.readLine();
-                clientes.broadcastMessage(message);
+                System.out.println("Actual message: " + message);
+                if (message == null) {
+                    break;
+                }
+                clientes.broadcastMessage(clientName, message);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void run() {
+        logIn();
+        chat();
     }
 }

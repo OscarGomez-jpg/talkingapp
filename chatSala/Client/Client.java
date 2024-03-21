@@ -35,7 +35,9 @@ public class Client {
             // Estar atento a la entrada del usuario para enviar mensajes al servidor
             String message;
             while ((message = userInput.readLine()) != null) {
-                out.println(message); // Enviar mensaje al servidor
+                if (!message.trim().isEmpty()) {
+                    out.println(message); // Enviar mensaje al servidor si no está vacío
+                }
             }
 
         } catch (IOException e) {
