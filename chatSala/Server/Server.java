@@ -1,9 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.util.*;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Scanner;
 
 public class Server {
 
@@ -21,7 +17,8 @@ public class Server {
                 System.out.println("Nuevo cliente conectado: " + clientSocket);
                 
                 ClientHandler newClient = new ClientHandler(clientSocket, clientes);
-                newClient.run();
+                Thread clientThread = new Thread(newClient);
+                clientThread.run();
             }
         } catch (IOException e) {
             e.printStackTrace();

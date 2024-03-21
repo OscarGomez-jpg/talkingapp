@@ -28,9 +28,9 @@ public class Client {
             out.println(username);
 
             // Crear el objeto Lector y lanzar un hilo para leer mensajes del servidor
-            Reader reader = new Reader(socket);
-            Thread readerThread = new Thread(reader);
-            readerThread.start();
+            Lector lector = new Lector(socket);
+            Thread lectorThread = new Thread(lector);
+            lectorThread.start();
 
             // Estar atento a la entrada del usuario para enviar mensajes al servidor
             String message;
@@ -40,28 +40,6 @@ public class Client {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    // Clase interna para leer mensajes del servidor en un hilo separado
-    static class Reader implements Runnable {
-        private Socket socket;
-
-        public Reader(Socket socket) {
-            this.socket = socket;
-        }
-
-        @Override
-        public void run() {
-            try {
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                String message;
-                while ((message = in.readLine()) != null) {
-                    System.out.println(message); // Mostrar mensaje del servidor al usuario
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }
