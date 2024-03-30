@@ -44,7 +44,7 @@ class ClientHandler implements Runnable {
         }
 
         // notificar a los demas clientes que un nuevo usuario se ha unido
-        clientes.broadcastMessage(clientName, clientName + " has joined the chat.");
+        clientes.broadcastMessage("", clientName + " has joined the chat.");
 
         //agregar al nuevo usuario a chatters junto con su canal de salida out
         Person newCLient = new Person(clientName, out);
@@ -67,7 +67,16 @@ class ClientHandler implements Runnable {
                 if (message == null) {
                     break;
                 }
-                clientes.broadcastMessage(clientName, message);
+                
+                // Comparar si el mensaje contiene un ":" para saber si es un mensaje privado
+                if (message.contains(":")) {
+                    String[] parts = message.split(":", 2);
+                    String receiver = parts[0].trim();
+                    String privateMessage = parts[1].trim();
+                    clientes.sendPrivateMessage(clientName, receiver, privateMessage);
+                } else {
+                    clientes.broadcastMessage(clientName, message);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

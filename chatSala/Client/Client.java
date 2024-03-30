@@ -48,7 +48,7 @@ public class Client {
             String message;
             while ((message = userInput.readLine()) != null) {
                 if (!message.trim().isEmpty()) {
-                    out.println(username + ": " + message); // Enviar mensaje al servidor si no está vacío
+                    out.println(message); // Enviar mensaje al servidor si no está vacío
                 }
             }
 

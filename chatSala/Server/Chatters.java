@@ -40,13 +40,35 @@ public class Chatters {
             for (Person user : clientes) {
                 if (!user.getName().equalsIgnoreCase(emisor)) {
                     try {
-                        user.getOut().println(message);
+                        if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
+                            user.getOut().println(message);
+                        } else {
+                            user.getOut().println(emisor + ": " + message);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        // Manejar cualquier excepción que pueda ocurrir al enviar el mensaje al usuario
                     }
                 }
             }
+        }
+    }
+
+    // Metodo para enviar un mensaje a un usuario en especifico
+    public void sendPrivateMessage(String clientName, String receiver, String privateMessage) {
+        if (nameExists(receiver)) {
+            synchronized (clientes) {
+                for (Person user : clientes) {
+                    if (user.getName().equalsIgnoreCase(receiver)) {
+                        try {
+                            user.getOut().println("(Private chat) " + clientName + ": " + privateMessage);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        } else {
+            broadcastMessage(clientName, privateMessage);
         }
     }
 }
