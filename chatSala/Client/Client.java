@@ -13,19 +13,31 @@ public class Client {
             // Canal de entrada para el usuario
             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
-            // Obtener el nombre de usuario
+            // Usando el socket, crear los canales de entrada in y salida out
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // Solicitar al usuario un alias, o nombre y enviarlo al servidor
             String username;
             do {
                 System.out.print("Ingrese su nombre de usuario: ");
                 username = userInput.readLine();
                 if (username.trim().isEmpty()) {
                     System.out.println("El nombre de usuario no puede estar vacío.");
-                }
-            } while (username.trim().isEmpty());
+                } else {
+                    // Enviar el nombre de usuario al servidor
+                    out.println(username);
 
-            // Enviar el nombre de usuario al servidor
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            out.println(username);
+                    // Esperar la respuesta del servidor
+                    String response = in.readLine();
+                    if (response.startsWith("REJECTED")) {
+                        System.out.println(response);
+                    } else if (response.equals("ACCEPTED")) {
+                        System.out.println(response);
+                        break;
+                    }
+                }
+            } while (true);
 
             // Crear el objeto Lector y lanzar un hilo para leer mensajes del servidor
             Lector lector = new Lector(socket);
@@ -36,7 +48,7 @@ public class Client {
             String message;
             while ((message = userInput.readLine()) != null) {
                 if (!message.trim().isEmpty()) {
-                    out.println(message); // Enviar mensaje al servidor si no está vacío
+                    out.println(username + ": " + message); // Enviar mensaje al servidor si no está vacío
                 }
             }
 

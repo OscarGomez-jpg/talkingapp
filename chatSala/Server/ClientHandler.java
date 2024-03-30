@@ -26,7 +26,7 @@ class ClientHandler implements Runnable {
     }
 
     private void logIn() {
-        // implementar la logica que permita soliciar a un cliente un nombre de usuario
+        // implementar la logica que permita solicitar a un cliente un nombre de usuario
         try {
             clientName = in.readLine();
         } catch (IOException e) {
@@ -34,20 +34,23 @@ class ClientHandler implements Runnable {
         }
 
         // verificar que no exista en chatters
-        // while (clientes.nameExists(clientName)) {
-        // out.println("REJECTED"); // Notify client that the username is rejected
-        // out.println("Username already exists. Please choose another one:");
-        // try {
-        // clientName = in.readLine();
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-        // }
+        while (clientes.nameExists(clientName)) {
+            out.println("REJECTED");
+            try {
+                clientName = in.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         // notificar a los demas clientes que un nuevo usuario se ha unido
         clientes.broadcastMessage(clientName, clientName + " has joined the chat.");
+
+        //agregar al nuevo usuario a chatters junto con su canal de salida out
         Person newCLient = new Person(clientName, out);
         clientes.addUser(newCLient);
+
+        //notificar al cliente que ha sido aceptado
         out.println("ACCEPTED");
     }
 

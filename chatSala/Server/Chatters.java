@@ -13,6 +13,7 @@ public class Chatters {
         return clientes.contains(user);
     }
 
+    // Metodo para verificar si un nombre de usuario existe, retorna true si existe
     public boolean nameExists(String name) {
         for (Person cliente : clientes) {
             if (name.equalsIgnoreCase(cliente.getName())) {
