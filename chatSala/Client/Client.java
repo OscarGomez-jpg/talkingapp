@@ -47,6 +47,15 @@ public class Client {
             // Estar atento a la entrada del usuario para enviar mensajes al servidor
             String message;
             while ((message = userInput.readLine()) != null) {
+                if (message.equals("disconnect")) {
+                    out.println("DISCONNECT");
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        
+                    }
+                    break;
+                }
                 if (!message.trim().isEmpty()) {
                     out.println(message); // Enviar mensaje al servidor si no está vacío
                 }

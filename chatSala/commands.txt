@@ -20,3 +20,6 @@ parar grabación: escribir "stop"
 Enviar nota de voz privada:
 iniciar grabación: escribir "record:"<receptor>
 parar grabación: escribir "stop"
+
+Desconectar cliente:
+escribir "disconnect"

@@ -47,6 +47,17 @@ public class Chatters {
         clientes.remove(user);
     }
 
+    // Metodo para buscar un usuario por su nombre
+    public Person getUser(String name) {
+        for (Person user : clientes) {
+            if (name.equalsIgnoreCase(user.getName())) {
+                return user;
+            }
+        }
+
+        return null;
+    }
+
     // Metodo para enviar un mensaje a todos los usuarios
     public void broadcastMessage(String emisor, String message) {
         synchronized (clientes) {

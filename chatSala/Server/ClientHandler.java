@@ -59,13 +59,15 @@ class ClientHandler implements Runnable {
         try {
             String message;
             while (true) {
-                if (clientSocket.isClosed()) {
+                message = in.readLine();
+                if (clientSocket.isClosed() || message == null) {
                     break;
                 }
-                message = in.readLine();
-                System.out.println("Actual message: " + message);
-                if (message == null) {
-                    break;
+                if (message.equals("DISCONNECT")) {
+                    System.out.println(clientName + " has left the chat.");
+                    clientes.removeUser(clientes.getUser(clientName));
+                } else {
+                    System.out.println("Actual message: " + message);
                 }
                 
                 // Comparar si el mensaje contiene un ":" para saber si es un mensaje privado
