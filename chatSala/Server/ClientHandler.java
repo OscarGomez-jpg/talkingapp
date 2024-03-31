@@ -69,13 +69,19 @@ class ClientHandler implements Runnable {
                 }
                 
                 // Comparar si el mensaje contiene un ":" para saber si es un mensaje privado
-                if (message.contains(":")) {
-                    String[] parts = message.split(":", 2);
-                    String receiver = parts[0].trim();
-                    String privateMessage = parts[1].trim();
-                    clientes.sendPrivateMessage(clientName, receiver, privateMessage);
+                if (message.equalsIgnoreCase("record")) {
+                    clientes.recordAudio(clientName);
+                } else if (message.equalsIgnoreCase("stop")) {
+                    clientes.stopRecording();
                 } else {
-                    clientes.broadcastMessage(clientName, message);
+                    if (message.contains(":")) {
+                        String[] parts = message.split(":", 2);
+                        String receiver = parts[0].trim();
+                        String privateMessage = parts[1].trim();
+                        clientes.sendPrivateMessage(clientName, receiver, privateMessage);
+                    } else {
+                        clientes.broadcastMessage(clientName, message);
+                    }
                 }
             }
         } catch (IOException e) {

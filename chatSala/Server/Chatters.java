@@ -1,11 +1,24 @@
 import java.util.Set;
+import javax.sound.sampled.AudioFormat;
+import java.io.ByteArrayOutputStream;
 import java.util.HashSet;
 
 public class Chatters {
+    // Atributo para almacenar los usuarios conectados
     private Set<Person> clientes;
+
+    // Atributos para grabar audio
+    private static int SAMPLE_RATE = 16000; // Frecuencia de muestreo en Hz
+    private static int SAMPLE_SIZE_IN_BITS = 16; // Tamaño de muestra en bits
+    private static int CHANNELS = 1; // Mono
+    private static boolean SIGNED = true; // Muestras firmadas
+    private static boolean BIG_ENDIAN = false; // Little-endian
+    private static boolean RECORDING = false;
+    private AudioFormat format;
 
     public Chatters() {
         clientes = new HashSet<>();
+        format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
     }
 
     // Metodo para verificar si un usuario existe, retorna true si existe
@@ -70,5 +83,74 @@ public class Chatters {
         } else {
             broadcastMessage(clientName, privateMessage);
         }
+    }
+
+    // Metodo para grabar audio
+    public void recordAudio(String clientName) {
+        synchronized (clientes) {
+            for (Person user : clientes) {
+                if (user.getName().equalsIgnoreCase(clientName)) {
+                    try {
+                        user.getOut().println("Recording audio...\nPress enter 'stop' to stop recording.");
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                        // Iniciar objeto de grabación de audio
+                        RecordAudio recorder = new RecordAudio(format, byteArrayOutputStream);
+                        Thread recorderThread = new Thread(recorder);
+                        recorderThread.start();
+                        RECORDING = true;
+
+                        // Iniciar otro hilo que verifique continuamente si RECORDING ha cambiado a false
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                while (RECORDING) {
+                                    // Esperar un poco antes de verificar de nuevo
+                                    try {
+                                        Thread.sleep(100);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                // Si RECORDING es false, detener la grabación
+                                recorder.stopRecording();
+                                user.getOut().println("Recording stopped.");
+                                playAudio(clientName, byteArrayOutputStream);
+                            }
+                        }).start();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    // Metodo para reproducir audio
+    public void playAudio(String clientName, ByteArrayOutputStream byteArrayOutputStream) {
+        synchronized (clientes) {
+            for (Person user : clientes) {
+                if (!user.getName().equalsIgnoreCase(clientName)) {
+                    try {
+                        user.getOut().println(clientName + " has sent an audio.\nPlaying audio...");
+                        byte[] audioData = byteArrayOutputStream.toByteArray();
+                        PlayerRecording player = new PlayerRecording(format);
+                        player.initiateAudio(audioData);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    public void stopRecording() {
+        RECORDING = false;
+    }
+
+    public void startRecording() {
+        RECORDING = true;
     }
 }
