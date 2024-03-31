@@ -86,7 +86,7 @@ public class Chatters {
     }
 
     // Metodo para grabar audio
-    public void recordAudio(String clientName) {
+    public void recordAudio(String clientName, String message) {
         synchronized (clientes) {
             for (Person user : clientes) {
                 if (user.getName().equalsIgnoreCase(clientName)) {
@@ -116,7 +116,7 @@ public class Chatters {
                                 // Si RECORDING es false, detener la grabación
                                 recorder.stopRecording();
                                 user.getOut().println("Recording stopped.");
-                                playAudio(clientName, byteArrayOutputStream);
+                                playAudio(clientName, message, byteArrayOutputStream);
                             }
                         }).start();
 
@@ -129,12 +129,23 @@ public class Chatters {
     }
 
     // Metodo para reproducir audio
-    public void playAudio(String clientName, ByteArrayOutputStream byteArrayOutputStream) {
+    public void playAudio(String clientName, String message, ByteArrayOutputStream byteArrayOutputStream) {
+        String receiver = null;
+        if (message.contains(":")) {
+            String[] parts = message.split(":", 2);
+            receiver = parts[1].trim();
+            if (!nameExists(receiver)) {
+                receiver = null;
+            }
+        }
+
         synchronized (clientes) {
             for (Person user : clientes) {
-                if (!user.getName().equalsIgnoreCase(clientName)) {
+                if (receiver == null && !user.getName().equalsIgnoreCase(clientName)
+                    || receiver != null && user.getName().equalsIgnoreCase(receiver)) {
                     try {
-                        user.getOut().println(clientName + " has sent an audio.\nPlaying audio...");
+                        String prefix = receiver == null ? "" : "(Private chat) ";
+                        user.getOut().println(prefix + clientName + " has sent an audio.\nPlaying audio...");
                         byte[] audioData = byteArrayOutputStream.toByteArray();
                         PlayerRecording player = new PlayerRecording(format);
                         player.initiateAudio(audioData);

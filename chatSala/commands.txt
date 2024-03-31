@@ -9,3 +9,14 @@ javac -cp Client Client/Client.java -d bin
 
 Ejecutar el cliente:
 java -cp bin Client
+
+Enviar mensaje privado:
+<receptor>: <mensaje>
+
+Enviar nota de voz grupal:
+iniciar grabación: escribir "record"
+parar grabación: escribir "stop"
+
+Enviar nota de voz privada:
+iniciar grabación: escribir "record:"<receptor>
+parar grabación: escribir "stop"

@@ -69,8 +69,8 @@ class ClientHandler implements Runnable {
                 }
                 
                 // Comparar si el mensaje contiene un ":" para saber si es un mensaje privado
-                if (message.equalsIgnoreCase("record")) {
-                    clientes.recordAudio(clientName);
+                if (message.contains("record")) {
+                    clientes.recordAudio(clientName, message);
                 } else if (message.equalsIgnoreCase("stop")) {
                     clientes.stopRecording();
                 } else {
