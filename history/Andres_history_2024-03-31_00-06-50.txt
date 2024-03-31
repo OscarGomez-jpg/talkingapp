@@ -1,0 +1,8 @@
+Juan has joined the chat.
+Andres has joined the chat.
+Andres: Hola
+Juan: Hola
+Juan: Como estas
+Andres: Bien y tu?
+Juan: Bien grax
+Juan has left the chat.

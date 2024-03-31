@@ -1,7 +1,9 @@
 import java.util.Set;
 import javax.sound.sampled.AudioFormat;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 public class Chatters {
     // Atributo para almacenar los usuarios conectados
@@ -16,9 +18,13 @@ public class Chatters {
     private static boolean RECORDING = false;
     private AudioFormat format;
 
+    // Atributo para almacenar el historial de chat
+    private List<String> chatHistory;
+
     public Chatters() {
         clientes = new HashSet<>();
         format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
+        chatHistory = new ArrayList<>();
     }
 
     // Metodo para verificar si un usuario existe, retorna true si existe
@@ -166,6 +172,20 @@ public class Chatters {
                 }
             }
         }
+    }
+
+    // Metodo para agregar un mensaje al historial de chat
+    public void addChatHistory(String clientName, String message) {
+        if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
+            chatHistory.add(message + "\nYou left the chat.");
+        } else {
+            chatHistory.add(clientName + ": " + message);
+        }
+    }
+
+    // Metodo para obtener el historial de chat de un usuario
+    public List<String> getChatHistory(String clientName) {
+        return chatHistory;
     }
 
     public void stopRecording() {

@@ -1,5 +1,8 @@
 import java.io.*;
 import java.net.*;
+import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 //esta clase se debe encargar de gestionar los clientes de forma individual
 //implementa la interfaz Runnable y en el metodo run valida el nombre de usuario
@@ -45,6 +48,7 @@ class ClientHandler implements Runnable {
 
         // notificar a los demas clientes que un nuevo usuario se ha unido
         clientes.broadcastMessage("", clientName + " has joined the chat.");
+        clientes.addChatHistory("", clientName + " has joined the chat.");
 
         //agregar al nuevo usuario a chatters junto con su canal de salida out
         Person newCLient = new Person(clientName, out);
@@ -81,9 +85,32 @@ class ClientHandler implements Runnable {
                         String receiver = parts[0].trim();
                         String privateMessage = parts[1].trim();
                         clientes.sendPrivateMessage(clientName, receiver, privateMessage);
+                    } else if (message.equals("DISCONNECT")) {
+                        clientes.broadcastMessage("", clientName + " has left the chat.");
+                        List<String> chatHistory = clientes.getChatHistory(clientName);
+                        File directory = new File("history");
+                        if (!directory.exists()) {
+                            directory.mkdir();
+                        }
+                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+                        String now = LocalDateTime.now().format(dtf);
+                        try (PrintWriter writer = new PrintWriter(new File(directory, clientName + "_history_" + now + ".txt"))) {
+                            for (String chatMessage : chatHistory) {
+                                writer.println(chatMessage);
+                            }
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
                     } else {
                         clientes.broadcastMessage(clientName, message);
                     }
+                }
+
+                // Guardar el mensaje en el historial de chat
+                if (message.equals("DISCONNECT")) {
+                    clientes.addChatHistory("", clientName + " has left the chat.");
+                } else {
+                    clientes.addChatHistory(clientName, message);
                 }
             }
         } catch (IOException e) {
