@@ -102,76 +102,83 @@ public class Chatters {
         }
     }
 
-    // Metodo para grabar audio
-    public void recordAudio(String clientName, String message) {
+    private Person findUserByName(String clientName) {
         synchronized (clientes) {
             for (Person user : clientes) {
                 if (user.getName().equalsIgnoreCase(clientName)) {
-                    try {
-                        user.getOut().println("Recording audio...\nPress enter 'stop' to stop recording.");
-                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    return user;
+                }
+            }
+        }
+        return null;
+    }
 
-                        // Iniciar objeto de grabación de audio
-                        RecordAudio recorder = new RecordAudio(format, byteArrayOutputStream);
-                        Thread recorderThread = new Thread(recorder);
-                        recorderThread.start();
-                        RECORDING = true;
+    public void recordAudio(String clientName, String message) {
+        Person user = findUserByName(clientName);
+        if (user == null) {
+            return;
+        }
 
-                        // Iniciar otro hilo que verifique continuamente si RECORDING ha cambiado a false
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                while (RECORDING) {
-                                    // Esperar un poco antes de verificar de nuevo
-                                    try {
-                                        Thread.sleep(100);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
+        user.getOut().println("Recording audio...\nPress enter 'stop' to stop recording.");
 
-                                // Si RECORDING es false, detener la grabación
-                                recorder.stopRecording();
-                                user.getOut().println("Recording stopped.");
-                                playAudio(clientName, message, byteArrayOutputStream);
-                            }
-                        }).start();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        RecordAudio recorder = new RecordAudio(format, byteArrayOutputStream);
+        Thread recorderThread = new Thread(recorder);
+        recorderThread.start();
+        RECORDING = true;
 
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        startRecordingChecker(recorder, user, byteArrayOutputStream, clientName, message);
+    }
+
+    private void startRecordingChecker(RecordAudio recorder, Person user, ByteArrayOutputStream byteArrayOutputStream,
+            String clientName, String message) {
+        new Thread(() -> {
+            while (RECORDING) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            recorder.stopRecording();
+            user.getOut().println("Recording stopped.");
+            playAudio(clientName, message, byteArrayOutputStream);
+        }).start();
+    }
+
+    
+
+    public void playAudio(String clientName, String message, ByteArrayOutputStream byteArrayOutputStream) {
+        String receiver = extractReceiver(message);
+        for (Person user : clientes) {
+            if (shouldPlayAudioForUser(clientName, receiver, user)) {
+                try {
+                    String prefix = receiver == null ? "" : "(Private chat) ";
+                    user.getOut().println(prefix + clientName + " has sent an audio.\nPlaying audio...");
+                    byte[] audioData = byteArrayOutputStream.toByteArray();
+                    PlayerRecording player = new PlayerRecording(format);
+                    player.initiateAudio(audioData);
+                    user.getOut().println("Audio has ended");
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
     }
 
-    // Metodo para reproducir audio
-    public void playAudio(String clientName, String message, ByteArrayOutputStream byteArrayOutputStream) {
-        String receiver = null;
+    private String extractReceiver(String message) {
         if (message.contains(":")) {
             String[] parts = message.split(":", 2);
-            receiver = parts[1].trim();
-            if (!nameExists(receiver)) {
-                receiver = null;
-            }
+            String receiver = parts[1].trim();
+            return nameExists(receiver) ? receiver : null;
         }
+        return null;
+    }
 
-        synchronized (clientes) {
-            for (Person user : clientes) {
-                if (receiver == null && !user.getName().equalsIgnoreCase(clientName)
-                    || receiver != null && user.getName().equalsIgnoreCase(receiver)) {
-                    try {
-                        String prefix = receiver == null ? "" : "(Private chat) ";
-                        user.getOut().println(prefix + clientName + " has sent an audio.\nPlaying audio...");
-                        byte[] audioData = byteArrayOutputStream.toByteArray();
-                        PlayerRecording player = new PlayerRecording(format);
-                        player.initiateAudio(audioData);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
+    private boolean shouldPlayAudioForUser(String clientName, String receiver, Person user) {
+        return (receiver == null && !user.getName().equalsIgnoreCase(clientName)) ||
+                (receiver != null && user.getName().equalsIgnoreCase(receiver));
     }
 
     // Metodo para agregar un mensaje al historial de chat

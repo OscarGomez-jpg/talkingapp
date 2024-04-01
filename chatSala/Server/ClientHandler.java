@@ -59,61 +59,71 @@ class ClientHandler implements Runnable {
     }
 
     private void chat() {
-        // ante un nuevo mensaje de ese cliente, enviar el mensaje a todos los usuarios
         try {
             String message;
-            while (true) {
-                message = in.readLine();
-                if (clientSocket.isClosed() || message == null) {
+            while ((message = in.readLine()) != null && !clientSocket.isClosed()) {
+                if (message.equals("DISCONNECT")) {
+                    handleDisconnect();
                     break;
                 }
-                if (message.equals("DISCONNECT")) {
-                    System.out.println(clientName + " has left the chat.");
-                    clientes.removeUser(clientes.getUser(clientName));
-                } else {
-                    System.out.println("Actual message: " + message);
-                }
-                
-                // Comparar si el mensaje contiene un ":" para saber si es un mensaje privado
-                if (message.contains("record")) {
-                    clientes.recordAudio(clientName, message);
-                } else if (message.equalsIgnoreCase("stop")) {
-                    clientes.stopRecording();
-                } else {
-                    if (message.contains(":")) {
-                        String[] parts = message.split(":", 2);
-                        String receiver = parts[0].trim();
-                        String privateMessage = parts[1].trim();
-                        clientes.sendPrivateMessage(clientName, receiver, privateMessage);
-                    } else if (message.equals("DISCONNECT")) {
-                        clientes.broadcastMessage("", clientName + " has left the chat.");
-                        List<String> chatHistory = clientes.getChatHistory(clientName);
-                        File directory = new File("history");
-                        if (!directory.exists()) {
-                            directory.mkdir();
-                        }
-                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-                        String now = LocalDateTime.now().format(dtf);
-                        try (PrintWriter writer = new PrintWriter(new File(directory, clientName + "_history_" + now + ".txt"))) {
-                            for (String chatMessage : chatHistory) {
-                                writer.println(chatMessage);
-                            }
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        clientes.broadcastMessage(clientName, message);
-                    }
-                }
 
-                // Guardar el mensaje en el historial de chat
-                if (message.equals("DISCONNECT")) {
-                    clientes.addChatHistory("", clientName + " has left the chat.");
-                } else {
-                    clientes.addChatHistory(clientName, message);
-                }
+                handleMessages(message);
+                saveChatHistory(message);
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleDisconnect() {
+        System.out.println(clientName + " has left the chat.");
+        clientes.removeUser(clientes.getUser(clientName));
+        clientes.broadcastMessage("", clientName + " has left the chat.");
+
+        saveChatHistory("");
+
+        List<String> chatHistory = clientes.getChatHistory(clientName);
+        saveChatHistoryToFile(chatHistory);
+    }
+
+    private void handleMessages(String message) {
+        if (message.contains("record")) {
+            clientes.recordAudio(clientName, message);
+        } else if (message.equalsIgnoreCase("stop")) {
+            clientes.stopRecording();
+        } else {
+            if (message.contains(":")) {
+                handlePrivateMessage(message);
+            } else {
+                clientes.broadcastMessage(clientName, message);
+            }
+        }
+    }
+
+    private void handlePrivateMessage(String message) {
+        String[] parts = message.split(":", 2);
+        String receiver = parts[0].trim();
+        String privateMessage = parts[1].trim();
+        clientes.sendPrivateMessage(clientName, receiver, privateMessage);
+    }
+
+    private void saveChatHistory(String message) {
+        clientes.addChatHistory(clientName.equals("DISCONNECT") ? "" : clientName, message);
+    }
+
+    private void saveChatHistoryToFile(List<String> chatHistory) {
+        File directory = new File("history");
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+        String now = LocalDateTime.now().format(dtf);
+        try (PrintWriter writer = new PrintWriter(new File(directory, clientName + "_history_" + now + ".txt"))) {
+            for (String chatMessage : chatHistory) {
+                writer.println(chatMessage);
+            }
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }

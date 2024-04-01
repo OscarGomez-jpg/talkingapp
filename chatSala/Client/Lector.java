@@ -13,6 +13,7 @@ public class Lector implements Runnable {
         try {
             String message;
             while ((message = in.readLine()) != null) {
+                if (message.equalsIgnoreCase("null")) break;
                 System.out.println(message); // Mostrar mensaje del servidor al usuario
             }
         } catch (SocketException e) {
