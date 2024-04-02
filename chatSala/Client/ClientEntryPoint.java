@@ -5,13 +5,13 @@ import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 
 public class ClientEntryPoint {
@@ -27,8 +27,10 @@ public class ClientEntryPoint {
     private Thread lectorThread;
     private AudioFormat format;
     private TargetDataLine microphone;
+    private SourceDataLine speakers;
 
-    public ClientEntryPoint(String serverIp, int port) throws UnknownHostException, IOException, LineUnavailableException {
+    public ClientEntryPoint(String serverIp, int port)
+            throws UnknownHostException, IOException, LineUnavailableException {
         this.port = port;
         this.ipInetAddress = InetAddress.getByName(serverIp);
         this.socket = new Socket(serverIp, port);
@@ -41,6 +43,7 @@ public class ClientEntryPoint {
         this.lectorThread = new Thread(lector);
         this.format = new AudioFormat(8000.0f, 16, 1, true, true);
         this.microphone = AudioSystem.getTargetDataLine(format);
+        this.speakers = AudioSystem.getSourceDataLine(format);
     }
 
     public void logIn() {
@@ -84,7 +87,20 @@ public class ClientEntryPoint {
 
                     }
                     break;
+                } else if (message.equals("call")) {
+                    out.println("Calling");
+
+                    Thread speakThread = new Thread(() -> {
+                        sendVoice();
+                    });
+                    Thread hearThread = new Thread(() -> {
+                        receiveVoice();
+                    });
+
+                    speakThread.start();
+                    hearThread.start();
                 }
+
                 if (!message.trim().isEmpty()) {
                     out.println(message); // Enviar mensaje al servidor si no está vacío
                 }
@@ -113,6 +129,25 @@ public class ClientEntryPoint {
                 }
             }
         } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void receiveVoice() {
+        try {
+            speakers.open(format);
+            speakers.start();
+
+            byte[] buffer = new byte[1024];
+
+            while (true) {
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                callSocket.receive(packet);
+                speakers.write(packet.getData(), 0, packet.getLength());
+            }
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

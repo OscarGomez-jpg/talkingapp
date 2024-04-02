@@ -147,8 +147,6 @@ public class Chatters {
         }).start();
     }
 
-    
-
     public void playAudio(String clientName, String message, ByteArrayOutputStream byteArrayOutputStream) {
         String receiver = extractReceiver(message);
         for (Person user : clientes) {
