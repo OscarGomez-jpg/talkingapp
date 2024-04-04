@@ -155,9 +155,8 @@ public class Chatters {
                     String prefix = receiver == null ? "" : "(Private chat) ";
                     user.getOut().println(prefix + clientName + " has sent an audio.\nPlaying audio...");
                     byte[] audioData = byteArrayOutputStream.toByteArray();
-                    PlayerRecording player = new PlayerRecording(format);
-                    player.initiateAudio(audioData);
-                    user.getOut().println("Audio has ended");
+                    user.setPlayerRecording(format);
+                    user.playAudio(audioData);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
