@@ -35,7 +35,6 @@ class ClientHandler implements Runnable {
     private void logIn() {
         // implementar la logica que permita solicitar a un cliente un nombre de usuario
         do {
-            out.println("REJECTED");
             try {
                 String nameAndPort = in.readLine();
                 // God, forgiveme for the evil I'm making here
@@ -43,9 +42,14 @@ class ClientHandler implements Runnable {
                 // [0] = Name, [1] = port
                 String[] spltdIn = nameAndPort.split(":");
                 clientName = spltdIn[0];
-                udpPort = Integer.parseInt(spltdIn[1]);
+                udpPort = Integer.parseInt(spltdIn[1]);   
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+            if (clientes.nameExists(clientName)) {
+                out.println("REJECTED");
+            } else {
+                out.println("ACCEPTED");
             }
         } while (clientes.nameExists(clientName));
 
@@ -56,9 +60,6 @@ class ClientHandler implements Runnable {
         //agregar al nuevo usuario a chatters junto con su canal de salida out
         Person newCLient = new Person(clientName, out, address, udpPort);
         clientes.addUser(newCLient);
-
-        //notificar al cliente que ha sido aceptado
-        out.println("ACCEPTED");
     }
 
     private void chat() {

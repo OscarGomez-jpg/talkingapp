@@ -1,5 +1,6 @@
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import javax.sound.sampled.AudioFormat;
 
 //objeto que representa un cliente o usuario o persona en el chat
 public class Person {
@@ -37,5 +38,10 @@ public class Person {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public void playAudio(byte[] audioData, AudioFormat format) {
+        PlayerRecording player = new PlayerRecording(format);
+        player.initiateAudio(audioData);
     }
 }
