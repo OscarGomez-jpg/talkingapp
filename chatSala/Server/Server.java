@@ -5,18 +5,21 @@ import java.util.concurrent.Executors;
 
 public class Server {
     public static void main(String[] args) {
-        int PORT = 6789;
+        int TCPPORT = 6789;
+        int UDPPORT = 9876;
         Chatters clientes = new Chatters(); // lista de clientes
 
         // Crear un ThreadPool
         ExecutorService executor = Executors.newFixedThreadPool(8);
 
         try {
-            try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            try (ServerSocket serverSocketTCP = new ServerSocket(TCPPORT)) {
+                DatagramSocket serverSocketUDP = new DatagramSocket(UDPPORT);
+                clientes.setDatagramSocket(serverSocketUDP);
                 System.out.println("Servidor iniciado. Esperando clientes...");
 
                 while (true) {
-                    Socket clientSocket = serverSocket.accept();
+                    Socket clientSocket = serverSocketTCP.accept();
                     System.out.println("Nuevo cliente conectado: " + clientSocket);
 
                     ClientHandler newClient = new ClientHandler(clientSocket, clientes);
@@ -24,6 +27,7 @@ public class Server {
                     executor.execute(newClient);
                 }
             }
+            
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

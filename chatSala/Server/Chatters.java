@@ -1,6 +1,7 @@
 import java.util.Set;
 import javax.sound.sampled.AudioFormat;
 import java.io.ByteArrayOutputStream;
+import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ public class Chatters {
     private static boolean BIG_ENDIAN = false; // Little-endian
     private static boolean RECORDING = false;
     private AudioFormat format;
+    private DatagramSocket udpSocket;
 
     // Atributo para almacenar el historial de chat
     private List<String> chatHistory;
@@ -70,6 +72,7 @@ public class Chatters {
             for (Person user : clientes) {
                 if (!user.getName().equalsIgnoreCase(emisor)) {
                     try {
+                        System.out.println("User " + emisor + " said: " + message);
                         if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
                             user.getOut().println(message);
                         } else {
@@ -155,8 +158,6 @@ public class Chatters {
                     String prefix = receiver == null ? "" : "(Private chat) ";
                     user.getOut().println(prefix + clientName + " has sent an audio.\nPlaying audio...");
                     byte[] audioData = byteArrayOutputStream.toByteArray();
-                    user.setPlayerRecording(format);
-                    user.playAudio(audioData);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -198,5 +199,9 @@ public class Chatters {
 
     public void startRecording() {
         RECORDING = true;
+    }
+
+    public void setDatagramSocket(DatagramSocket udpSocket) {
+        this.udpSocket = udpSocket;
     }
 }

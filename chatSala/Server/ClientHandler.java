@@ -39,7 +39,7 @@ class ClientHandler implements Runnable {
         // verificar que no exista en chatters
         while (clientes.nameExists(clientName)) {
             out.println("REJECTED");
-            try {
+            try { 
                 clientName = in.readLine();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -90,7 +90,7 @@ class ClientHandler implements Runnable {
         if (message.contains("record")) {
             clientes.recordAudio(clientName, message);
         } else if (message.equalsIgnoreCase("stop")) {
-            clientes.stopRecording();
+            clientes.stopRecording(); 
         } else {
             if (message.contains(":")) {
                 handlePrivateMessage(message);

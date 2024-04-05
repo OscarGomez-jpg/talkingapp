@@ -5,12 +5,14 @@ import javax.sound.sampled.LineUnavailableException;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int PORT = 6789;
+    private static final int TCPPORT = 6789;
+    private static final int SERVER_UDP_SOCKET = 9876;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         ClientEntryPoint clientEntryPoint;
+
         try {
-            clientEntryPoint = new ClientEntryPoint(SERVER_IP, PORT);
+            clientEntryPoint = new ClientEntryPoint(SERVER_IP, TCPPORT, SERVER_UDP_SOCKET);
             clientEntryPoint.logIn();
             clientEntryPoint.getLectorThread().start();
             clientEntryPoint.chat();

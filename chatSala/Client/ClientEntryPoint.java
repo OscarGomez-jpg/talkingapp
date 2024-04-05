@@ -16,7 +16,7 @@ import javax.sound.sampled.TargetDataLine;
 
 public class ClientEntryPoint {
     private InetAddress ipInetAddress;
-    private int port;
+    private int serverSocketUDP;
     private Socket socket;
     private DatagramSocket callSocket;
     private BufferedReader userKeyboard;
@@ -29,12 +29,12 @@ public class ClientEntryPoint {
     private TargetDataLine microphone;
     private SourceDataLine speakers;
 
-    public ClientEntryPoint(String serverIp, int port)
+    public ClientEntryPoint(String serverIp, int tcpport, int serverSocketUDP)
             throws UnknownHostException, IOException, LineUnavailableException {
-        this.port = port;
         this.ipInetAddress = InetAddress.getByName(serverIp);
-        this.socket = new Socket(serverIp, port);
-        this.callSocket = new DatagramSocket(port, ipInetAddress);
+        this.serverSocketUDP = serverSocketUDP;
+        this.socket = new Socket(serverIp, tcpport);
+        this.callSocket = new DatagramSocket();//, ipInetAddress);
         this.userKeyboard = new BufferedReader(new InputStreamReader(System.in));
         this.out = new PrintWriter(socket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -47,6 +47,7 @@ public class ClientEntryPoint {
     }
 
     public void logIn() {
+        boolean validName = false;
         do {
             System.out.print("Ingrese su nombre de usuario: ");
             try {
@@ -58,23 +59,22 @@ public class ClientEntryPoint {
                     out.println(username);
 
                     // Esperar la respuesta del servidor
-                    String response;
-
-                    response = in.readLine();
+                    String response = in.readLine();
 
                     if (response.startsWith("REJECTED")) {
                         System.out.println(response);
                     } else if (response.equals("ACCEPTED")) {
                         System.out.println(response);
-                        break;
+                        validName = true;
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } while (true);
+        } while (!validName);
     }
 
+    // Este es el que imprime desde Client a Server
     public void chat() {
         String message;
         try {
@@ -84,21 +84,14 @@ public class ClientEntryPoint {
                     try {
                         socket.close();
                     } catch (IOException e) {
-
+                        e.printStackTrace();
                     }
                     break;
                 } else if (message.equals("call")) {
-                    out.println("Calling");
-
-                    Thread speakThread = new Thread(() -> {
-                        sendVoice();
-                    });
-                    Thread hearThread = new Thread(() -> {
-                        receiveVoice();
-                    });
-
-                    speakThread.start();
-                    hearThread.start();
+                    out.println("calling");
+                    call();
+                } else if (message.equals("stop call")) {
+                    stopCall();
                 }
 
                 if (!message.trim().isEmpty()) {
@@ -108,6 +101,35 @@ public class ClientEntryPoint {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void call() {
+        // Crear e iniciar un hilo para enviar voz
+        Thread sendVoiceThread = new Thread(() -> {
+            sendVoice();
+        });
+        sendVoiceThread.start();
+
+        // Crear e iniciar un hilo para recibir voz
+        Thread receiveVoiceThread = new Thread(() -> {
+            receiveVoice();
+        });
+        receiveVoiceThread.start();
+    }
+
+    public void stopCall() {
+        // Detener el envío de voz
+        microphone.stop();
+        microphone.close();
+
+        // Detener la recepción de voz
+        speakers.stop();
+        speakers.close();
+
+        // Detener el socket de llamada
+        callSocket.close();
+
+        System.out.println("Llamada detenida.");
     }
 
     public void sendVoice() {
@@ -121,7 +143,7 @@ public class ClientEntryPoint {
 
             while (true) {
                 int bytesRead = microphone.read(buffer, 0, buffer.length);
-                DatagramPacket packet = new DatagramPacket(buffer, bytesRead, ipInetAddress, port);
+                DatagramPacket packet = new DatagramPacket(buffer, bytesRead, ipInetAddress, serverSocketUDP);
                 try {
                     callSocket.send(packet);
                 } catch (IOException e) {
