@@ -1,6 +1,8 @@
 import java.util.Set;
 import javax.sound.sampled.AudioFormat;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,8 +19,8 @@ public class Chatters {
     private static boolean SIGNED = true; // Muestras firmadas
     private static boolean BIG_ENDIAN = false; // Little-endian
     private static boolean RECORDING = false;
-    private AudioFormat format;
     private DatagramSocket udpSocket;
+    private AudioFormat format;
 
     // Atributo para almacenar el historial de chat
     private List<String> chatHistory;
@@ -165,6 +167,26 @@ public class Chatters {
         }
     }
 
+    public void handleCalls(String clientName) {
+        byte[] buffer = new byte[1024];
+
+        while (true) {
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            try {
+                udpSocket.receive(packet);
+
+                for (Person user : clientes) {
+                    if (!clientName.equalsIgnoreCase(user.getName())) {
+                        DatagramPacket resending = new DatagramPacket(packet.getData(), packet.getLength(), user.getAddress(), user.getPort());
+                        udpSocket.send(resending);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private String extractReceiver(String message) {
         if (message.contains(":")) {
             String[] parts = message.split(":", 2);
@@ -201,7 +223,13 @@ public class Chatters {
         RECORDING = true;
     }
 
-    public void setDatagramSocket(DatagramSocket udpSocket) {
+    public DatagramSocket getUdpSocket() {
+        return udpSocket;
+    }
+
+    public void setUdpSocket(DatagramSocket udpSocket) {
         this.udpSocket = udpSocket;
     }
+
+    
 }

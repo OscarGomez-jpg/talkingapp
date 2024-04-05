@@ -56,7 +56,7 @@ public class ClientEntryPoint {
                     System.out.println("El nombre de usuario no puede estar vacío.");
                 } else {
                     // Enviar el nombre de usuario al servidor
-                    out.println(username);
+                    out.println(username + ":" + callSocket.getLocalPort());
 
                     // Esperar la respuesta del servidor
                     String response = in.readLine();

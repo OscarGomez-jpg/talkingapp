@@ -13,12 +13,16 @@ class ClientHandler implements Runnable {
     private BufferedReader in;
     private PrintWriter out;
     private String clientName;
+    private DatagramSocket udpDatagramSocket;
+    private InetAddress address;
+    private int udpPort;
     Chatters clientes;
 
     public ClientHandler(Socket socket, Chatters clientes) {
         // asignar los objetos que llegan a su respectivo atributo en la clase
         this.clientSocket = socket;
         this.clientes = clientes;
+        this.address = socket.getInetAddress();
         // crear canales de entrada in y de salida out para la comunicacion
         try {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -30,28 +34,27 @@ class ClientHandler implements Runnable {
 
     private void logIn() {
         // implementar la logica que permita solicitar a un cliente un nombre de usuario
-        try {
-            clientName = in.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // verificar que no exista en chatters
-        while (clientes.nameExists(clientName)) {
+        do {
             out.println("REJECTED");
-            try { 
-                clientName = in.readLine();
+            try {
+                String nameAndPort = in.readLine();
+                // God, forgiveme for the evil I'm making here
+                // Theres no place on hell for people like me
+                // [0] = Name, [1] = port
+                String[] spltdIn = nameAndPort.split(":");
+                clientName = spltdIn[0];
+                udpPort = Integer.parseInt(spltdIn[1]);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        } while (clientes.nameExists(clientName));
 
         // notificar a los demas clientes que un nuevo usuario se ha unido
         clientes.broadcastMessage("", clientName + " has joined the chat.");
         clientes.addChatHistory("", clientName + " has joined the chat.");
 
         //agregar al nuevo usuario a chatters junto con su canal de salida out
-        Person newCLient = new Person(clientName, out);
+        Person newCLient = new Person(clientName, out, address, udpPort);
         clientes.addUser(newCLient);
 
         //notificar al cliente que ha sido aceptado
@@ -91,6 +94,8 @@ class ClientHandler implements Runnable {
             clientes.recordAudio(clientName, message);
         } else if (message.equalsIgnoreCase("stop")) {
             clientes.stopRecording(); 
+        } else if (message.equalsIgnoreCase("calling")) {
+            clientes.handleCalls(clientName);
         } else {
             if (message.contains(":")) {
                 handlePrivateMessage(message);
@@ -133,4 +138,28 @@ class ClientHandler implements Runnable {
         logIn();
         chat();
     }
+
+    public DatagramSocket getUdpDatagramSocket() {
+        return udpDatagramSocket;
+    }
+
+    public void setUdpDatagramSocket(DatagramSocket udpDatagramSocket) {
+        this.udpDatagramSocket = udpDatagramSocket;
+    }
+
+    public InetAddress getAddress() {
+        return address;
+    }
+
+    public void setAddress(InetAddress address) {
+        this.address = address;
+    }
+
+    public int getUdpPort() {
+        return udpPort;
+    }
+
+    public void setUdpPort(int udpPort) {
+        this.udpPort = udpPort;
+    }       
 }

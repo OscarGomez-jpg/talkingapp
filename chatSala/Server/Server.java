@@ -15,7 +15,7 @@ public class Server {
         try {
             try (ServerSocket serverSocketTCP = new ServerSocket(TCPPORT)) {
                 DatagramSocket serverSocketUDP = new DatagramSocket(UDPPORT);
-                clientes.setDatagramSocket(serverSocketUDP);
+                clientes.setUdpSocket(serverSocketUDP);
                 System.out.println("Servidor iniciado. Esperando clientes...");
 
                 while (true) {
@@ -23,6 +23,8 @@ public class Server {
                     System.out.println("Nuevo cliente conectado: " + clientSocket);
 
                     ClientHandler newClient = new ClientHandler(clientSocket, clientes);
+
+                    newClient.setUdpDatagramSocket(serverSocketUDP);
                     // Enviamos el ClientHandler al ThreadPool.
                     executor.execute(newClient);
                 }
