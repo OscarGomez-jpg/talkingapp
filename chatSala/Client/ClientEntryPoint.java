@@ -1,7 +1,11 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -13,6 +17,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
+import java.io.FileInputStream;
 
 public class ClientEntryPoint {
     private InetAddress ipInetAddress;
@@ -28,6 +33,16 @@ public class ClientEntryPoint {
     private AudioFormat format;
     private TargetDataLine microphone;
     private SourceDataLine speakers;
+    private static boolean RECORDING;
+
+    // Atributos para grabar audio
+    private static int SAMPLE_RATE = 16000; // Frecuencia de muestreo en Hz
+    private static int SAMPLE_SIZE_IN_BITS = 16; // Tamaño de muestra en bits
+    private static int CHANNELS = 1; // Mono
+    private static boolean SIGNED = true; // Muestras firmadas
+    private static boolean BIG_ENDIAN = false; // Little-endian
+    private AudioFormat VoiceNoteFormat; // Formato de audio para notas de voz
+    private PlayerRecording player;
 
     public ClientEntryPoint(String serverIp, int tcpport, int serverSocketUDP)
             throws UnknownHostException, IOException, LineUnavailableException {
@@ -44,6 +59,9 @@ public class ClientEntryPoint {
         this.format = new AudioFormat(8000.0f, 16, 1, true, true);
         this.microphone = AudioSystem.getTargetDataLine(format);
         this.speakers = AudioSystem.getSourceDataLine(format);
+        this.VoiceNoteFormat = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
+        player = new PlayerRecording(VoiceNoteFormat);
+        ClientEntryPoint.RECORDING = false;
     }
 
     public void logIn() {
@@ -92,6 +110,20 @@ public class ClientEntryPoint {
                     call();
                 } else if (message.equals("stop call")) {
                     stopCall();
+                } else if (message.equals("record")) {
+                    out.println("recording");
+                    Thread recordThread = new Thread(() -> {
+                        startRecording();
+                    });
+                    recordThread.start();
+                } else if (message.equals("stop record")) {
+                    System.out.println("Bandera 1");
+                    out.println("stop");
+                    ClientEntryPoint.RECORDING = false;
+                    Thread stopRecordThread = new Thread(() -> {
+                        stopRecording();
+                    });
+                    stopRecordThread.start();
                 }
 
                 if (!message.trim().isEmpty()) {
@@ -170,6 +202,42 @@ public class ClientEntryPoint {
             }
         } catch (LineUnavailableException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void startRecording() {
+        try {
+            microphone.open(VoiceNoteFormat);
+            microphone.start();
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[SAMPLE_RATE];
+            ClientEntryPoint.RECORDING = true;
+
+            while (ClientEntryPoint.RECORDING) {
+                int bytesRead = microphone.read(buffer, 0, buffer.length);
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+
+            byte[] audioData = byteArrayOutputStream.toByteArray();
+
+            socket.getOutputStream().write(audioData);
+
+            microphone.stop();
+            microphone.close();
+        } catch (LineUnavailableException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopRecording() {
+        try {
+            byte[] audioData = socket.getInputStream().readAllBytes();
+            player.initiateAudio(audioData);
         } catch (IOException e) {
             e.printStackTrace();
         }

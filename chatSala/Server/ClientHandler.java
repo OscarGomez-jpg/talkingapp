@@ -12,10 +12,12 @@ class ClientHandler implements Runnable {
     private Socket clientSocket;
     private BufferedReader in;
     private PrintWriter out;
+    private OutputStream outAudio;
     private String clientName;
     private DatagramSocket udpDatagramSocket;
     private InetAddress address;
     private int udpPort;
+    private boolean audioSended;
     Chatters clientes;
 
     public ClientHandler(Socket socket, Chatters clientes) {
@@ -23,10 +25,12 @@ class ClientHandler implements Runnable {
         this.clientSocket = socket;
         this.clientes = clientes;
         this.address = socket.getInetAddress();
+        this.audioSended = false;
         // crear canales de entrada in y de salida out para la comunicacion
         try {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             out = new PrintWriter(clientSocket.getOutputStream(), true);
+            outAudio = clientSocket.getOutputStream();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,21 +62,26 @@ class ClientHandler implements Runnable {
         clientes.addChatHistory("", clientName + " has joined the chat.");
 
         //agregar al nuevo usuario a chatters junto con su canal de salida out
-        Person newCLient = new Person(clientName, out, address, udpPort);
+        Person newCLient = new Person(clientName, out, address, udpPort, outAudio);
         clientes.addUser(newCLient);
     }
 
     private void chat() {
         try {
             String message;
-            while ((message = in.readLine()) != null && !clientSocket.isClosed()) {
+            while ((message = in.readLine()) != null || audioSended && !clientSocket.isClosed()) {
                 if (message.equals("DISCONNECT")) {
                     handleDisconnect();
                     break;
                 }
 
-                handleMessages(message);
-                saveChatHistory(message);
+                if (audioSended) {
+                    clientes.handleVoiceNotes(clientName, message);
+                    audioSended = false;
+                } else {
+                    handleMessages(message);
+                    saveChatHistory(message);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -91,10 +100,11 @@ class ClientHandler implements Runnable {
     }
 
     private void handleMessages(String message) {
-        if (message.contains("record")) {
+        if (message.contains("recording")) {
             clientes.recordAudio(clientName, message);
-        } else if (message.equalsIgnoreCase("stop")) {
-            clientes.stopRecording(); 
+        } else if (message.contains("stop")) {
+            audioSended = true;
+            System.out.println("Bandera 2");
         } else if (message.equalsIgnoreCase("calling")) {
             clientes.handleCalls(clientName);
         } else {

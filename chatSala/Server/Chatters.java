@@ -1,33 +1,27 @@
 import java.util.Set;
-import javax.sound.sampled.AudioFormat;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.net.Socket;
 
 public class Chatters {
     // Atributo para almacenar los usuarios conectados
     private Set<Person> clientes;
 
-    // Atributos para grabar audio
-    private static int SAMPLE_RATE = 16000; // Frecuencia de muestreo en Hz
-    private static int SAMPLE_SIZE_IN_BITS = 16; // Tamaño de muestra en bits
-    private static int CHANNELS = 1; // Mono
-    private static boolean SIGNED = true; // Muestras firmadas
-    private static boolean BIG_ENDIAN = false; // Little-endian
-    private static boolean RECORDING = false;
+    // Udp socket
     private DatagramSocket udpSocket;
-    private AudioFormat format;
+
+    // Tcp socket
+    private Socket tcpSocket;
 
     // Atributo para almacenar el historial de chat
     private List<String> chatHistory;
 
     public Chatters() {
         clientes = new HashSet<>();
-        format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
         chatHistory = new ArrayList<>();
     }
 
@@ -123,48 +117,35 @@ public class Chatters {
         if (user == null) {
             return;
         }
-
         user.getOut().println("Recording audio...\nPress enter 'stop' to stop recording.");
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        RecordAudio recorder = new RecordAudio(format, byteArrayOutputStream);
-        Thread recorderThread = new Thread(recorder);
-        recorderThread.start();
-        RECORDING = true;
-
-        startRecordingChecker(recorder, user, byteArrayOutputStream, clientName, message);
     }
 
-    private void startRecordingChecker(RecordAudio recorder, Person user, ByteArrayOutputStream byteArrayOutputStream,
-            String clientName, String message) {
-        new Thread(() -> {
-            while (RECORDING) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            recorder.stopRecording();
-            user.getOut().println("Recording stopped.");
-            playAudio(clientName, message, byteArrayOutputStream);
-        }).start();
+    public void handleVoiceNotes(String clientName, String message) {
+        byte[] audioData;
+        try {
+            audioData = tcpSocket.getInputStream().readAllBytes();
+            Thread sendVoiceNote = new Thread(() -> {
+                sendVoiceNote(clientName, message, audioData);
+            });
+            sendVoiceNote.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void playAudio(String clientName, String message, ByteArrayOutputStream byteArrayOutputStream) {
+    public void sendVoiceNote(String clientName, String message, byte[] audioData) {
         String receiver = extractReceiver(message);
-        for (Person user : clientes) {
-            if (shouldPlayAudioForUser(clientName, receiver, user)) {
-                try {
+        try {
+            
+            for (Person user : clientes) {
+                if (shouldPlayAudioForUser(clientName, receiver, user)) {
                     String prefix = receiver == null ? "" : "(Private chat) ";
                     user.getOut().println(prefix + clientName + " has sent an audio.\nPlaying audio...");
-                    byte[] audioData = byteArrayOutputStream.toByteArray();
-                    user.playAudio(audioData, format);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    user.getOutAudio().write(audioData);
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -225,20 +206,20 @@ public class Chatters {
         return chatHistory;
     }
 
-    public void stopRecording() {
-        RECORDING = false;
-    }
-
-    public void startRecording() {
-        RECORDING = true;
-    }
-
     public DatagramSocket getUdpSocket() {
         return udpSocket;
     }
 
     public void setUdpSocket(DatagramSocket udpSocket) {
         this.udpSocket = udpSocket;
+    }
+
+    public Socket getTcpSocket() {
+        return tcpSocket;
+    }
+
+    public void setTcpSocket(Socket tcpSocket) {
+        this.tcpSocket = tcpSocket;
     }
 
     
