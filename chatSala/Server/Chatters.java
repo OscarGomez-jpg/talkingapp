@@ -169,10 +169,10 @@ public class Chatters {
     }
 
     public void handleCalls(String clientName) {
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[256];
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
         while (true) {
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             try {
                 udpSocket.receive(packet);
 

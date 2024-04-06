@@ -137,7 +137,7 @@ public class ClientEntryPoint {
             microphone.open(format);
             microphone.start();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[256];
 
             System.out.println("Llamando");
 
@@ -160,7 +160,7 @@ public class ClientEntryPoint {
             speakers.open(format);
             speakers.start();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[256];
 
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);

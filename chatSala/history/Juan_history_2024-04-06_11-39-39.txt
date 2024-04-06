@@ -1,0 +1,10 @@
+Juan has joined the chat.
+You left the chat.
+Juan: Hola
+Oscar has joined the chat.
+You left the chat.
+Oscar: Hola
+Juan: Hola
+Oscar: esselente
+Juan: jmmm
+Juan: 
