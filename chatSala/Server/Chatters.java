@@ -169,16 +169,25 @@ public class Chatters {
     }
 
     public void handleCalls(String clientName) {
-        byte[] buffer = new byte[256];
+        byte[] buffer = new byte[160];
         
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        Thread callThread = new Thread(() -> {
+            createCallThread(clientName, packet);
+        });
+
+        callThread.start();
+    }
+
+    private void createCallThread(String clientName, DatagramPacket packet) {
         while (true) {
             try {
                 udpSocket.receive(packet);
 
                 for (Person user : clientes) {
                     if (!clientName.equalsIgnoreCase(user.getName())) {
-                        DatagramPacket resending = new DatagramPacket(packet.getData(), packet.getLength(), user.getAddress(), user.getPort());
+                        DatagramPacket resending = new DatagramPacket(packet.getData(), packet.getLength(),
+                                user.getAddress(), user.getPort());
                         udpSocket.send(resending);
                     }
                 }

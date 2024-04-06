@@ -137,13 +137,14 @@ public class ClientEntryPoint {
             microphone.open(format);
             microphone.start();
 
-            byte[] buffer = new byte[256];
+            byte[] buffer = new byte[160];
+            DatagramPacket packet;
 
             System.out.println("Llamando");
 
             while (true) {
                 int bytesRead = microphone.read(buffer, 0, buffer.length);
-                DatagramPacket packet = new DatagramPacket(buffer, bytesRead, ipInetAddress, serverSocketUDP);
+                packet = new DatagramPacket(buffer, bytesRead, ipInetAddress, serverSocketUDP);
                 try {
                     callSocket.send(packet);
                 } catch (IOException e) {
@@ -160,10 +161,10 @@ public class ClientEntryPoint {
             speakers.open(format);
             speakers.start();
 
-            byte[] buffer = new byte[256];
+            byte[] buffer = new byte[160];
 
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             while (true) {
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 callSocket.receive(packet);
                 speakers.write(packet.getData(), 0, packet.getLength());
             }
