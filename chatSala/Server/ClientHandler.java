@@ -110,7 +110,7 @@ class ClientHandler implements Runnable {
         if (message.contains("recording")) {
             isRecording = true;
             clientes.recordAudio(clientName, message);
-        } else if (message.contains("stop") && isRecording) {
+        } else if (message.contains("[stop]") && isRecording) {
             audioSended = true;
             isRecording = false;
         } else if (message.equalsIgnoreCase("calling")) {

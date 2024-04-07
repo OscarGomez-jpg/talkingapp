@@ -118,6 +118,7 @@ public class Chatters {
             return;
         }
         user.getOut().println("(System) Recording audio...\n(System) Please enter 'detain' to stop recording.");
+        chatHistory.add(clientName + ": [Sending audio]");
     }
 
     public void handleVoiceNotes(String clientName, String message, byte[] audioData) {
@@ -178,7 +179,7 @@ public class Chatters {
 
     public void handleCalls(String clientName) {
         byte[] buffer = new byte[160];
-        
+        chatHistory.add(clientName + ": [Calling]");
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         Thread callThread = new Thread(() -> {
             createCallThread(clientName, packet);
@@ -222,10 +223,12 @@ public class Chatters {
     // Metodo para agregar un mensaje al historial de chat
     public void addChatHistory(String clientName, String message) {
         if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
-            chatHistory.add(message + "\nYou left the chat.");
-        } else {
+            chatHistory.add(message);
+        } else if (message == "") {
+            chatHistory.add(message + "\n" + clientName + " has left the chat.");
+        } else if (!message.contains("Calling") && !message.contains("recording") && !message.contains("stop") && !message.contains("record") && !message.contains("calling")) {
             chatHistory.add(clientName + ": " + message);
-        }
+        }	
     }
 
     // Metodo para obtener el historial de chat de un usuario

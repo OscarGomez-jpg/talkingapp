@@ -115,7 +115,7 @@ public class ClientEntryPoint {
                     }
                     break;
                 } else if (message.equals("call")) {
-                    System.out.println("Escribe stop call para detener la llamada");
+                    System.out.println("Enter 'stop call' to stop the call.");
                     out.println("calling");
                     call();
                 } else if (message.equals("stop call")) {
@@ -256,7 +256,7 @@ public class ClientEntryPoint {
 
             byte[] audioData = byteArrayOutputStream.toByteArray();
 
-            out.println("stop");
+            out.println("[stop]");
 
             String audio = Base64.getEncoder().encodeToString(audioData);
             out.println(message + "-" + audio);
