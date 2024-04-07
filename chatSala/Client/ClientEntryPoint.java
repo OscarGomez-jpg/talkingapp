@@ -44,6 +44,7 @@ public class ClientEntryPoint {
     private static boolean BIG_ENDIAN = false; // Little-endian
     private AudioFormat voiceNoteFormat; // Formato de audio para notas de voz
     private PlayerRecording player;
+    private String message; // Texto del mensaje de voz temporal
 
     public ClientEntryPoint(String serverIp, int tcpport, int serverSocketUDP)
             throws UnknownHostException, IOException, LineUnavailableException {
@@ -62,6 +63,7 @@ public class ClientEntryPoint {
         this.speakers = AudioSystem.getSourceDataLine(format);
         this.voiceNoteFormat = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
         this.player = new PlayerRecording(voiceNoteFormat);
+        this.message = "";
         ClientEntryPoint.RECORDING = false;
     }
 
@@ -115,8 +117,9 @@ public class ClientEntryPoint {
                     call();
                 } else if (message.equals("stop call")) {
                     stopCall();
-                } else if (message.equals("record")) {
-                    out.println("recording");
+                } else if (message.equals("record") || message.contains("record:")) {
+                    out.println("[recording] " + message);
+                    this.message = message;
                     Thread recordThread = new Thread(() -> {
                         startRecording();
                     });
@@ -251,12 +254,11 @@ public class ClientEntryPoint {
 
             byte[] audioData = byteArrayOutputStream.toByteArray();
 
-            System.out.println("Bytes sended: " + audioData.length);
-
             out.println("stop");
 
-            String message = Base64.getEncoder().encodeToString(audioData);
-            out.println(message);
+            String audio = Base64.getEncoder().encodeToString(audioData);
+            out.println(message + "-" + audio);
+            this.message = "";
 
             microphone.stop();
             microphone.close();
@@ -271,7 +273,7 @@ public class ClientEntryPoint {
             ByteArrayOutputStream receivedData = new ByteArrayOutputStream();
 
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            callSocket.setSoTimeout(500); // Establecer el tiempo de espera a 200 milisegundos
+            callSocket.setSoTimeout(500); // Establecer el tiempo de espera a 500 milisegundos
             while (true) {
                 try {
                     callSocket.receive(packet);
@@ -282,7 +284,6 @@ public class ClientEntryPoint {
             }
             // Imprimir los datos recibidos para comparar
             byte[] audioData = receivedData.toByteArray();
-            System.out.println("Bytes received: " + audioData.length);
             callSocket.setSoTimeout(0);
             player.initiateAudio(audioData);
         } catch (IOException e) {

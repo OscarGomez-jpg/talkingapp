@@ -117,18 +117,18 @@ public class Chatters {
         if (user == null) {
             return;
         }
-        user.getOut().println("Recording audio...\nPress enter 'detain' to stop recording.");
+        user.getOut().println("(System) Recording audio...\n(System) Press enter 'detain' to stop recording.");
     }
 
-    public void handleVoiceNotes(String clientName, byte[] audioData) {
+    public void handleVoiceNotes(String clientName, String message, byte[] audioData) {
         Thread sendVoiceNote = new Thread(() -> {
-            sendVoiceNote(clientName, audioData);
+            sendVoiceNote(clientName, message, audioData);
         });
         sendVoiceNote.start();
     }
 
-    public void sendVoiceNote(String clientName, byte[] audioData) {
-        String receiver = null;
+    public void sendVoiceNote(String clientName, String message, byte[] audioData) {
+        String receiver = extractReceiver(message);
 
         String prefix = receiver == null ? "" : "(Private chat) ";
 
@@ -166,9 +166,9 @@ public class Chatters {
             if (offset >= audioData.length) {
                 for (Person user : clientes) {
                     if (shouldPlayAudioForUser(clientName, receiver, user)) {
-                        user.getOut().println("Playing audio...");
+                        user.getOut().println("(System) Playing audio...");
                     } else {
-                        user.getOut().println("Audio sent.");
+                        user.getOut().println("(System) Audio sent.");
                     }
                 }
                 break;
@@ -204,8 +204,7 @@ public class Chatters {
             }
         }
     }
-
-    /*
+    
     private String extractReceiver(String message) {
         if (message.contains(":")) {
             String[] parts = message.split(":", 2);
@@ -214,13 +213,11 @@ public class Chatters {
         }
         return null;
     }
-    */
     
     private boolean shouldPlayAudioForUser(String clientName, String receiver, Person user) {
         return (receiver == null && !user.getName().equalsIgnoreCase(clientName)) ||
                 (receiver != null && user.getName().equalsIgnoreCase(receiver));
     }
-    
 
     // Metodo para agregar un mensaje al historial de chat
     public void addChatHistory(String clientName, String message) {

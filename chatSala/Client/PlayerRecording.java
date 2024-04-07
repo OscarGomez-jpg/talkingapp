@@ -35,7 +35,7 @@ public class PlayerRecording {
 			while ((count = in.read(buffer)) != -1) {			
 					out.write(buffer, 0, count);				
 			}
-			System.out.println("End of audio");
+			System.out.println("(System) End of audio");
             out.drain();
             out.stop();
             out.close();
