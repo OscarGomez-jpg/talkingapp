@@ -251,18 +251,12 @@ public class ClientEntryPoint {
 
             byte[] audioData = byteArrayOutputStream.toByteArray();
 
-            System.out.println("Audio a enviar: " + audioData.length + " bytes.");
+            System.out.println("Bytes sended: " + audioData.length);
 
             out.println("stop");
 
             String message = Base64.getEncoder().encodeToString(audioData);
-            System.out.println("Enviando audio a ClientHandler.");
             out.println(message);
-
-            Thread stopRecordThread = new Thread(() -> {
-                stopRecording();
-            });
-            stopRecordThread.start();
 
             microphone.stop();
             microphone.close();
@@ -278,7 +272,6 @@ public class ClientEntryPoint {
 
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             callSocket.setSoTimeout(500); // Establecer el tiempo de espera a 200 milisegundos
-            System.out.println("Inicio de recepcion de paquetes.");
             while (true) {
                 try {
                     callSocket.receive(packet);
@@ -289,8 +282,8 @@ public class ClientEntryPoint {
             }
             // Imprimir los datos recibidos para comparar
             byte[] audioData = receivedData.toByteArray();
+            System.out.println("Bytes received: " + audioData.length);
             callSocket.setSoTimeout(0);
-            System.out.println("Audio recibido: " + audioData.length + " bytes.");
             player.initiateAudio(audioData);
         } catch (IOException e) {
             e.printStackTrace();

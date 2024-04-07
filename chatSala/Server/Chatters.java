@@ -148,13 +148,13 @@ public class Chatters {
             
             for (Person user : clientes) {
                 try {
+                    if (shouldPlayAudioForUser(clientName, receiver, user)) {
+                        // Crear un DatagramPacket con los datos de audio
+                        audioPacket = new DatagramPacket(audioData, offset, length, user.getAddress(), user.getPort());
 
-                    // Crear un DatagramPacket con los datos de audio
-                    audioPacket = new DatagramPacket(audioData, offset, length, user.getAddress(), user.getPort());
-
-                    // Enviar el DatagramPacket
-                    udpSocket.send(audioPacket);
-
+                        // Enviar el DatagramPacket
+                        udpSocket.send(audioPacket);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -165,7 +165,11 @@ public class Chatters {
 
             if (offset >= audioData.length) {
                 for (Person user : clientes) {
-                    user.getOut().println("Playing audio...");
+                    if (shouldPlayAudioForUser(clientName, receiver, user)) {
+                        user.getOut().println("Playing audio...");
+                    } else {
+                        user.getOut().println("Audio sent.");
+                    }
                 }
                 break;
             }

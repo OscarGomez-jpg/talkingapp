@@ -31,12 +31,11 @@ public class PlayerRecording {
 		byte[] buffer = new byte[1024];
         int count;
 		try {
-			
-            System.out.println("Reproduciendo...");
+			// Leer datos de audio de la entrada y escribirlos en la salida
 			while ((count = in.read(buffer)) != -1) {			
 					out.write(buffer, 0, count);				
 			}
-			System.out.println("Fin del audio.");
+			System.out.println("End of audio");
             out.drain();
             out.stop();
             out.close();
