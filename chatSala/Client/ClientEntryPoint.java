@@ -289,6 +289,7 @@ public class ClientEntryPoint {
             }
             // Imprimir los datos recibidos para comparar
             byte[] audioData = receivedData.toByteArray();
+            callSocket.setSoTimeout(0);
             System.out.println("Audio recibido: " + audioData.length + " bytes.");
             player.initiateAudio(audioData);
         } catch (IOException e) {
