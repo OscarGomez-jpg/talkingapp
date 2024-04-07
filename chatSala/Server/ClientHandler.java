@@ -3,6 +3,7 @@ import java.net.*;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 
 //esta clase se debe encargar de gestionar los clientes de forma individual
 //implementa la interfaz Runnable y en el metodo run valida el nombre de usuario
@@ -76,7 +77,8 @@ class ClientHandler implements Runnable {
                 }
 
                 if (audioSended) {
-                    clientes.handleVoiceNotes(clientName, message);
+                    byte[] audio = Base64.getDecoder().decode(message);
+                    clientes.handleVoiceNotes(clientName, audio);
                     audioSended = false;
                 } else {
                     handleMessages(message);
@@ -104,7 +106,6 @@ class ClientHandler implements Runnable {
             clientes.recordAudio(clientName, message);
         } else if (message.contains("stop")) {
             audioSended = true;
-            System.out.println("Bandera 2");
         } else if (message.equalsIgnoreCase("calling")) {
             clientes.handleCalls(clientName);
         } else {

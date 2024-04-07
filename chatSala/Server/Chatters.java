@@ -68,10 +68,10 @@ public class Chatters {
             for (Person user : clientes) {
                 if (!user.getName().equalsIgnoreCase(emisor)) {
                     try {
-                        System.out.println("User " + emisor + " said: " + message);
                         if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
                             user.getOut().println(message);
                         } else {
+                            System.out.println("User " + emisor + " said: " + message);
                             user.getOut().println(emisor + ": " + message);
                         }
                     } catch (Exception e) {
@@ -117,35 +117,58 @@ public class Chatters {
         if (user == null) {
             return;
         }
-        user.getOut().println("Recording audio...\nPress enter 'stop' to stop recording.");
+        user.getOut().println("Recording audio...\nPress enter 'detain' to stop recording.");
     }
 
-    public void handleVoiceNotes(String clientName, String message) {
-        byte[] audioData;
-        try {
-            audioData = tcpSocket.getInputStream().readAllBytes();
-            Thread sendVoiceNote = new Thread(() -> {
-                sendVoiceNote(clientName, message, audioData);
-            });
-            sendVoiceNote.start();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void handleVoiceNotes(String clientName, byte[] audioData) {
+        Thread sendVoiceNote = new Thread(() -> {
+            sendVoiceNote(clientName, audioData);
+        });
+        sendVoiceNote.start();
+    }
+
+    public void sendVoiceNote(String clientName, byte[] audioData) {
+        String receiver = null;
+
+        String prefix = receiver == null ? "" : "(Private chat) ";
+
+        // Enviar los datos de audio en paquetes de 1024 bytes
+        int offset = 0;
+
+        for (Person user : clientes) {
+            if (shouldPlayAudioForUser(clientName, receiver, user)) {
+                user.getOut().println(prefix + clientName + " has sent an audio.");
+            }
         }
-    }
+        while (offset < audioData.length) {
+            // Calcular la longitud del próximo paquete
+            int length = Math.min(audioData.length - offset, 1024);
 
-    public void sendVoiceNote(String clientName, String message, byte[] audioData) {
-        String receiver = extractReceiver(message);
-        try {
+            DatagramPacket audioPacket;
             
             for (Person user : clientes) {
-                if (shouldPlayAudioForUser(clientName, receiver, user)) {
-                    String prefix = receiver == null ? "" : "(Private chat) ";
-                    user.getOut().println(prefix + clientName + " has sent an audio.\nPlaying audio...");
-                    user.getOutAudio().write(audioData);
+                try {
+
+                    // Crear un DatagramPacket con los datos de audio
+                    audioPacket = new DatagramPacket(audioData, offset, length, user.getAddress(), user.getPort());
+
+                    // Enviar el DatagramPacket
+                    udpSocket.send(audioPacket);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+
+            // Actualizar el offset
+            offset += length;
+
+            if (offset >= audioData.length) {
+                for (Person user : clientes) {
+                    user.getOut().println("Playing audio...");
+                }
+                break;
+            }
         }
     }
 
@@ -178,6 +201,7 @@ public class Chatters {
         }
     }
 
+    /*
     private String extractReceiver(String message) {
         if (message.contains(":")) {
             String[] parts = message.split(":", 2);
@@ -186,11 +210,13 @@ public class Chatters {
         }
         return null;
     }
-
+    */
+    
     private boolean shouldPlayAudioForUser(String clientName, String receiver, Person user) {
         return (receiver == null && !user.getName().equalsIgnoreCase(clientName)) ||
                 (receiver != null && user.getName().equalsIgnoreCase(receiver));
     }
+    
 
     // Metodo para agregar un mensaje al historial de chat
     public void addChatHistory(String clientName, String message) {

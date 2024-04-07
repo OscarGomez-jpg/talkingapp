@@ -2,22 +2,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Base64;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
-import java.io.FileInputStream;
 
 public class ClientEntryPoint {
     private InetAddress ipInetAddress;
@@ -41,7 +42,7 @@ public class ClientEntryPoint {
     private static int CHANNELS = 1; // Mono
     private static boolean SIGNED = true; // Muestras firmadas
     private static boolean BIG_ENDIAN = false; // Little-endian
-    private AudioFormat VoiceNoteFormat; // Formato de audio para notas de voz
+    private AudioFormat voiceNoteFormat; // Formato de audio para notas de voz
     private PlayerRecording player;
 
     public ClientEntryPoint(String serverIp, int tcpport, int serverSocketUDP)
@@ -59,8 +60,8 @@ public class ClientEntryPoint {
         this.format = new AudioFormat(8000.0f, 16, 1, true, true);
         this.microphone = AudioSystem.getTargetDataLine(format);
         this.speakers = AudioSystem.getSourceDataLine(format);
-        this.VoiceNoteFormat = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
-        player = new PlayerRecording(VoiceNoteFormat);
+        this.voiceNoteFormat = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
+        this.player = new PlayerRecording(voiceNoteFormat);
         ClientEntryPoint.RECORDING = false;
     }
 
@@ -94,6 +95,10 @@ public class ClientEntryPoint {
 
     // Este es el que imprime desde Client a Server
     public void chat() {
+        Thread detectConsoleOutput = new Thread(() -> {
+            detectConsole();
+        });
+        detectConsoleOutput.start();
         String message;
         try {
             while ((message = userKeyboard.readLine()) != null) {
@@ -116,23 +121,46 @@ public class ClientEntryPoint {
                         startRecording();
                     });
                     recordThread.start();
-                } else if (message.equals("stop record")) {
-                    System.out.println("Bandera 1");
-                    out.println("stop");
+                } else if (message.equals("detain")) {
                     ClientEntryPoint.RECORDING = false;
-                    Thread stopRecordThread = new Thread(() -> {
-                        stopRecording();
-                    });
-                    stopRecordThread.start();
-                }
-
-                if (!message.trim().isEmpty()) {
+                } else if (!message.trim().isEmpty()) {
                     out.println(message); // Enviar mensaje al servidor si no está vacío
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void detectConsole() {
+        PrintStream originalOut = System.out;
+        StringBuilder sb = new StringBuilder();
+        PrintStream interceptor = new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) {
+                originalOut.write(b);
+                char c = (char) b;
+                sb.append(c);
+                AtomicInteger cnt = new AtomicInteger(0);
+                if (c == ' ') {
+                    cnt.incrementAndGet();
+                } else {
+                    cnt.set(0);
+                }
+                if (c == ' ' && cnt.get() == 4) {
+                    // Si el carácter es un espacio, limpiar el StringBuilder
+                    sb.setLength(0);
+                } else if (sb.toString().contains("has sent an audio.")) {
+                    Thread stopRecordThread = new Thread(() -> {
+                        stopRecording();
+                    });
+                    stopRecordThread.start();
+                    // Limpiar el StringBuilder después de detectar un audio
+                    sb.setLength(0);
+                }
+            }
+        });
+        System.setOut(interceptor);
     }
 
     public void call() {
@@ -209,7 +237,7 @@ public class ClientEntryPoint {
 
     public void startRecording() {
         try {
-            microphone.open(VoiceNoteFormat);
+            microphone.open(voiceNoteFormat);
             microphone.start();
 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -223,20 +251,45 @@ public class ClientEntryPoint {
 
             byte[] audioData = byteArrayOutputStream.toByteArray();
 
-            socket.getOutputStream().write(audioData);
+            System.out.println("Audio a enviar: " + audioData.length + " bytes.");
+
+            out.println("stop");
+
+            String message = Base64.getEncoder().encodeToString(audioData);
+            System.out.println("Enviando audio a ClientHandler.");
+            out.println(message);
+
+            Thread stopRecordThread = new Thread(() -> {
+                stopRecording();
+            });
+            stopRecordThread.start();
 
             microphone.stop();
             microphone.close();
         } catch (LineUnavailableException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void stopRecording() {
         try {
-            byte[] audioData = socket.getInputStream().readAllBytes();
+            byte[] buffer = new byte[1024];
+            ByteArrayOutputStream receivedData = new ByteArrayOutputStream();
+
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            callSocket.setSoTimeout(500); // Establecer el tiempo de espera a 200 milisegundos
+            System.out.println("Inicio de recepcion de paquetes.");
+            while (true) {
+                try {
+                    callSocket.receive(packet);
+                    receivedData.write(packet.getData(), 0, packet.getLength());
+                } catch (SocketTimeoutException e) {
+                    break;
+                }
+            }
+            // Imprimir los datos recibidos para comparar
+            byte[] audioData = receivedData.toByteArray();
+            System.out.println("Audio recibido: " + audioData.length + " bytes.");
             player.initiateAudio(audioData);
         } catch (IOException e) {
             e.printStackTrace();
