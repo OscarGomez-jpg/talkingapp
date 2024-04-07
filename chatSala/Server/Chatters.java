@@ -193,7 +193,7 @@ public class Chatters {
                 udpSocket.receive(packet);
 
                 for (Person user : clientes) {
-                    if (!clientName.equalsIgnoreCase(user.getName())) {
+                    if (!user.getName().equalsIgnoreCase(clientName)) {
                         DatagramPacket resending = new DatagramPacket(packet.getData(), packet.getLength(),
                                 user.getAddress(), user.getPort());
                         udpSocket.send(resending);

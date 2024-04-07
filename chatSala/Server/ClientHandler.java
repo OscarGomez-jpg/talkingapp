@@ -43,7 +43,7 @@ class ClientHandler implements Runnable {
             try {
                 String nameAndPort = in.readLine();
                 // God, forgiveme for the evil I'm making here
-                // Theres no place on hell for people like me
+                // Theres no place in hell for people like me
                 // [0] = Name, [1] = port
                 String[] spltdIn = nameAndPort.split(":");
                 clientName = spltdIn[0];
