@@ -19,6 +19,7 @@ class ClientHandler implements Runnable {
     private InetAddress address;
     private int udpPort;
     private boolean audioSended;
+    private boolean isRecording;
     Chatters clientes;
 
     public ClientHandler(Socket socket, Chatters clientes) {
@@ -27,6 +28,7 @@ class ClientHandler implements Runnable {
         this.clientes = clientes;
         this.address = socket.getInetAddress();
         this.audioSended = false;
+        this.isRecording = false;
         // crear canales de entrada in y de salida out para la comunicacion
         try {
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -106,9 +108,11 @@ class ClientHandler implements Runnable {
 
     private void handleMessages(String message) {
         if (message.contains("recording")) {
+            isRecording = true;
             clientes.recordAudio(clientName, message);
-        } else if (message.contains("stop")) {
+        } else if (message.contains("stop") && isRecording) {
             audioSended = true;
+            isRecording = false;
         } else if (message.equalsIgnoreCase("calling")) {
             clientes.handleCalls(clientName);
         } else {

@@ -117,7 +117,7 @@ public class Chatters {
         if (user == null) {
             return;
         }
-        user.getOut().println("(System) Recording audio...\n(System) Press enter 'detain' to stop recording.");
+        user.getOut().println("(System) Recording audio...\n(System) Please enter 'detain' to stop recording.");
     }
 
     public void handleVoiceNotes(String clientName, String message, byte[] audioData) {

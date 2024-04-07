@@ -15,11 +15,11 @@ Enviar mensaje privado:
 
 Enviar nota de voz grupal:
 iniciar grabación: escribir "record"
-parar grabación: escribir "stop"
+parar grabación: escribir "detain"
 
 Enviar nota de voz privada:
 iniciar grabación: escribir "record:"<receptor>
-parar grabación: escribir "stop"
+parar grabación: escribir "detain"
 
 Desconectar cliente:
 escribir "disconnect"

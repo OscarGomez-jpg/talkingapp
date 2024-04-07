@@ -43,7 +43,7 @@ public class ClientEntryPoint {
     private static boolean SIGNED = true; // Muestras firmadas
     private static boolean BIG_ENDIAN = false; // Little-endian
     private AudioFormat voiceNoteFormat; // Formato de audio para notas de voz
-    private PlayerRecording player;
+    private PlayerRecording player; // Reproductor de audio
     private String message; // Texto del mensaje de voz temporal
 
     public ClientEntryPoint(String serverIp, int tcpport, int serverSocketUDP)
@@ -124,7 +124,7 @@ public class ClientEntryPoint {
                         startRecording();
                     });
                     recordThread.start();
-                } else if (message.equals("detain")) {
+                } else if (message.equals("detain") && ClientEntryPoint.RECORDING) {
                     ClientEntryPoint.RECORDING = false;
                 } else if (!message.trim().isEmpty()) {
                     out.println(message); // Enviar mensaje al servidor si no está vacío
