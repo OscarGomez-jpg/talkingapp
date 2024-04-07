@@ -77,8 +77,11 @@ class ClientHandler implements Runnable {
                 }
 
                 if (audioSended) {
+                    String[] parts = message.split("-", 2); // Divide el mensaje en dos partes en base al primer "-"
+                    String sendingMessage = parts[0]; // La primera parte antes del "-"
+                    message = parts.length > 1 ? parts[1] : ""; // La segunda parte después del "-", si existe
                     byte[] audio = Base64.getDecoder().decode(message);
-                    clientes.handleVoiceNotes(clientName, audio);
+                    clientes.handleVoiceNotes(clientName, sendingMessage, audio);
                     audioSended = false;
                 } else {
                     handleMessages(message);
