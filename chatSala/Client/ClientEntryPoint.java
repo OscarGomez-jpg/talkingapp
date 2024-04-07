@@ -45,6 +45,7 @@ public class ClientEntryPoint {
     private AudioFormat voiceNoteFormat; // Formato de audio para notas de voz
     private PlayerRecording player;
     private String message; // Texto del mensaje de voz temporal
+    private boolean stopCall;
 
     public ClientEntryPoint(String serverIp, int tcpport, int serverSocketUDP)
             throws UnknownHostException, IOException, LineUnavailableException {
@@ -65,6 +66,7 @@ public class ClientEntryPoint {
         this.player = new PlayerRecording(voiceNoteFormat);
         this.message = "";
         ClientEntryPoint.RECORDING = false;
+        this.stopCall = false;
     }
 
     public void logIn() {
@@ -113,9 +115,11 @@ public class ClientEntryPoint {
                     }
                     break;
                 } else if (message.equals("call")) {
+                    System.out.println("Escribe stop call para detener la llamada");
                     out.println("calling");
                     call();
                 } else if (message.equals("stop call")) {
+                    stopCall = true;
                     stopCall();
                 } else if (message.equals("record") || message.contains("record:")) {
                     out.println("[recording] " + message);
@@ -167,6 +171,7 @@ public class ClientEntryPoint {
     }
 
     public void call() {
+        stopCall = false;
         // Crear e iniciar un hilo para enviar voz
         Thread sendVoiceThread = new Thread(() -> {
             sendVoice();
@@ -189,9 +194,6 @@ public class ClientEntryPoint {
         speakers.stop();
         speakers.close();
 
-        // Detener el socket de llamada
-        callSocket.close();
-
         System.out.println("Llamada detenida.");
     }
 
@@ -205,7 +207,7 @@ public class ClientEntryPoint {
 
             System.out.println("Llamando");
 
-            while (true) {
+            while (!stopCall) {
                 int bytesRead = microphone.read(buffer, 0, buffer.length);
                 packet = new DatagramPacket(buffer, bytesRead, ipInetAddress, serverSocketUDP);
                 try {
@@ -227,7 +229,7 @@ public class ClientEntryPoint {
             byte[] buffer = new byte[160];
 
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            while (true) {
+            while (!stopCall) {
                 callSocket.receive(packet);
                 speakers.write(packet.getData(), 0, packet.getLength());
             }
