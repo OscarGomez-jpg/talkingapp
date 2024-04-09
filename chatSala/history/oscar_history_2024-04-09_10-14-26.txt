@@ -1,0 +1,9 @@
+oscar has joined the chat.
+oscar: [Calling]
+juan has joined the chat.
+oscar: hola
+juan: [Calling]
+oscar: hola
+oscar: [Calling]
+
+oscar has left the chat.

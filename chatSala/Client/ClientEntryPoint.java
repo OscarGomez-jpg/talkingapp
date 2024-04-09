@@ -59,7 +59,7 @@ public class ClientEntryPoint {
         this.username = "";
         this.lector = new Lector(socket);
         this.lectorThread = new Thread(lector);
-        this.format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 8000.0f, 16, 1, 2, 8000.0f, true);
+        this.format = new AudioFormat(8000.0f, 16, 1, true, true);
         this.microphone = AudioSystem.getTargetDataLine(format);
         this.speakers = AudioSystem.getSourceDataLine(format);
         this.voiceNoteFormat = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
@@ -199,22 +199,26 @@ public class ClientEntryPoint {
 
     public void sendVoice() {
         try {
+            microphone = AudioSystem.getTargetDataLine(format);
             microphone.open(format);
             microphone.start();
 
-            byte[] buffer = new byte[160];
-            DatagramPacket packet;
-
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[160]; // Tamaño del buffer ajustado según necesidad
             System.out.println("Llamando");
 
             while (!stopCall) {
                 int bytesRead = microphone.read(buffer, 0, buffer.length);
-                packet = new DatagramPacket(buffer, bytesRead, ipInetAddress, serverSocketUDP);
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+                byte[] audioData = byteArrayOutputStream.toByteArray();
+                DatagramPacket packet = new DatagramPacket(audioData, audioData.length, ipInetAddress, serverSocketUDP);
                 try {
                     callSocket.send(packet);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                // Limpia el ByteArrayOutputStream para la próxima iteración
+                byteArrayOutputStream.reset();
             }
         } catch (LineUnavailableException e) {
             e.printStackTrace();
