@@ -1,0 +1,23 @@
+Juan: Wenas
+Marin has joined the chat.
+Juan: Hola
+Juan: create group:arameo
+Marin: join group arameo
+Marin: join group arameo
+Marin: join group arameo
+Marin: join group arameo
+Marin: join group:arameo
+Juan: Wenas
+Marin: xd
+Juan: delete group:arameo
+Juan: Hola
+Juan: leave group:arameo
+Juan: Hola
+Juan: delete group:arameo
+Marin: leave group:arameo
+Juan: Hola
+Juan: delete group:arameo
+Juan: join group:arameo
+Marin: join group:arameo
+
+Marin has left the chat.

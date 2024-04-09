@@ -10,7 +10,7 @@ public class Person {
     private String name; //nombre de usuario
     private InetAddress address;
     private int port;
-    private ArrayList<String> groups; //grupos a los que pertenece
+    private String group; //grupos a los que pertenece
     PrintWriter out;    //canal para enviarle mensajes a ese usuario
     OutputStream outAudio; //canal para enviarle audio a ese usuario
 
@@ -20,7 +20,7 @@ public class Person {
         this.address = address;
         this.port = port;
         this.outAudio = outAudio;
-        this.groups = new ArrayList<String>();
+        this.group = "";
     }
    
     public String getName() {
@@ -51,16 +51,16 @@ public class Person {
         return outAudio;
     }
 
-    public void addGroup(String group) {
-        groups.add(group);
+    public void setGroup(String group) {
+        this.group = group;
     }
 
-    public ArrayList<String> getGroups() {
-        return groups;
+    public String getGroup() {
+        return group;
     }
 
-    public void removeGroup(String group) {
-        groups.remove(group);
+    public void deleteGroup() {
+        this.group = "";
     }
 
     public void playAudio(byte[] audioData, AudioFormat format) {

@@ -136,15 +136,7 @@ class ClientHandler implements Runnable {
                 clientes.broadcastMessage(clientName, message);
             }
         } else if (message.contains("leave group")) {
-            if (message.contains(":")) {
-                String[] parts = message.split(":", 2);
-                String groupName = parts[1].trim();
-                clientes.deleteFromGroup(clientName, groupName);
-            } else {
-                message = "Invalid group name";
-                clientes.broadcastMessage(clientName, message);
-            }
-        /*
+            clientes.deleteFromGroup(clientName);
         } else if (message.contains("delete group")) {
             if (message.contains(":")) {
                 String[] parts = message.split(":", 2);
@@ -154,7 +146,6 @@ class ClientHandler implements Runnable {
                 message = "Invalid group name";
                 clientes.broadcastMessage(clientName, message);
             }
-            */
         } else {
             if (message.contains(":")) {
                 handlePrivateMessage(message);

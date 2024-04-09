@@ -73,37 +73,40 @@ public class Chatters {
 
     // Metodo para enviar un mensaje a todos los usuarios
     public void broadcastMessage(String emisor, String message) {
+        boolean isGroupMessage = false;
         synchronized (clientes) {
             for (Person user : clientes) {
                 if (user.getName().equals(emisor)) {
-                    if (user.getGroups().isEmpty()) {
-                        if (!user.getName().equalsIgnoreCase(emisor) && user.getGroups().isEmpty()) {
+                    if (!user.getGroup().equals("")) {
+                        isGroupMessage = true;
+                    }
+                    break;
+                }
+            }
+            for (Person user : clientes) {
+                if (!user.getName().equals(emisor)) {
+                    if (!isGroupMessage && user.getGroup().equals("")) {
+                        try {
+                            if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
+                                user.getOut().println(message);
+                            } else {
+                                System.out.println("User " + emisor + " said: " + message);
+                                user.getOut().println(emisor + ": " + message);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else if (isGroupMessage && !user.getGroup().equals("")) {
+                        if (user.getGroup().equals(getUser(emisor).getGroup())) {
                             try {
                                 if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
                                     user.getOut().println(message);
                                 } else {
-                                    System.out.println("User " + emisor + " said: " + message);
-                                    user.getOut().println(emisor + ": " + message);
+                                    System.out.println("(Group: " + user.getGroup() + "): " + "User " + emisor + " said: " + message);
+                                    user.getOut().println("(Group: " + user.getGroup() + "): " + emisor + ": " + message);
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
-                            }
-                        }
-                    } else {
-                        for (String group : user.getGroups()) {
-                            for (Person userGroup : clientes) {
-                                if (userGroup.getGroups().contains(group) && userGroup != user) {
-                                    try {
-                                        if (message.contains("has joined the group.") || message.contains("has left the group.")) {
-                                            userGroup.getOut().println(message);
-                                        } else {
-                                            System.out.println("User " + emisor + " said: " + message);
-                                            userGroup.getOut().println(emisor + ": " + message);
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                }
                             }
                         }
                     }
@@ -140,7 +143,7 @@ public class Chatters {
                     return;
                 }
                 chatGroups.add(groupName);
-                user.addGroup(groupName);
+                user.setGroup(groupName);
                 user.getOut().println("Group " + groupName + " has been created.");
             }
         }
@@ -153,11 +156,11 @@ public class Chatters {
                 if (!chatGroups.contains(groupName)) {
                     user.getOut().println("Group does not exist.");
                     return;
-                } else if (user.getGroups().contains(groupName)) {
+                } else if (user.getGroup().equalsIgnoreCase(groupName)) {
                     user.getOut().println("You are already in the group.");
                     return;
                 } else {
-                    user.addGroup(groupName);
+                    user.setGroup(groupName);
                     user.getOut().println("You have joined the group.");
                     broadcastMessage(clientName, clientName + " has joined the group.");
                 }
@@ -165,20 +168,48 @@ public class Chatters {
         }
     }
 
-    // Metodo para eliminar a un usuario de un grupo
-    public void deleteFromGroup(String clientName, String groupName) {
+    // Metodo para dejar un grupo de chat
+    public void deleteFromGroup(String clientName) {
         for (Person user : clientes) {
             if (user.getName().equalsIgnoreCase(clientName)) {
-                if (!chatGroups.contains(groupName)) {
-                    user.getOut().println("Group does not exist.");
-                    return;
-                } else if (!user.getGroups().contains(groupName)) {
-                    user.getOut().println("You are not in the group.");
+                if (user.getGroup().equals("")) {
+                    user.getOut().println("You are not in a group.");
                     return;
                 } else {
                     broadcastMessage(clientName, clientName + " has left the group.");
-                    user.removeGroup(groupName);
+                    user.deleteGroup();
                     user.getOut().println("You have been removed from the group.");
+                }
+            }
+        }
+    }
+
+    // Metodo para eliminar un grupo de chat
+    public void deleteGroup(String clientName, String groupName) {
+        boolean someoneConnected = false;
+        for (Person user : clientes) {
+            if (user.getGroup().equalsIgnoreCase(groupName)) {
+                someoneConnected = true;
+                break;
+            }
+        }
+        if (!someoneConnected) {
+            for (Person user : clientes) {
+                if (user.getName().equalsIgnoreCase(clientName)) {
+                    if (!chatGroups.contains(groupName)) {
+                        user.getOut().println("Group does not exist.");
+                        return;
+                    } else {
+                        chatGroups.remove(groupName);
+                        user.getOut().println("Group has been deleted.");
+                        broadcastMessage(clientName, "Group " + groupName + " has been deleted.");
+                    }
+                }
+            }
+        } else {
+            for (Person user : clientes) {
+                if (user.getName().equalsIgnoreCase(clientName)) {
+                    user.getOut().println("There are users connected to the group.");
                 }
             }
         }
@@ -215,13 +246,25 @@ public class Chatters {
         String receiver = extractReceiver(message);
 
         String prefix = receiver == null ? "" : "(Private chat) ";
+        Boolean hasGroup = false;
+
+        for (Person user : clientes) {
+            if (user.getName().equalsIgnoreCase(clientName)) {
+                if (!user.getGroup().equals("")) {
+                    hasGroup = true;
+                }
+                break;
+            }
+        }
 
         // Enviar los datos de audio en paquetes de 1024 bytes
         int offset = 0;
 
         for (Person user : clientes) {
-            if (shouldPlayAudioForUser(clientName, receiver, user)) {
-                user.getOut().println(prefix + clientName + " has sent an audio.");
+            if (shouldPlayAudioForUser(clientName, receiver, user) || receiver != null) {
+                if (!hasGroup || user.getGroup().equals(getUser(clientName).getGroup())) {
+                    user.getOut().println(prefix + clientName + " has sent an audio.");
+                }
             }
         }
         while (offset < audioData.length) {
@@ -233,11 +276,13 @@ public class Chatters {
             for (Person user : clientes) {
                 try {
                     if (shouldPlayAudioForUser(clientName, receiver, user)) {
-                        // Crear un DatagramPacket con los datos de audio
-                        audioPacket = new DatagramPacket(audioData, offset, length, user.getAddress(), user.getPort());
+                        if (!hasGroup || user.getGroup().equals(getUser(clientName).getGroup()) || receiver != null) {
+                            // Crear un DatagramPacket con los datos de audio
+                            audioPacket = new DatagramPacket(audioData, offset, length, user.getAddress(), user.getPort());
 
-                        // Enviar el DatagramPacket
-                        udpSocket.send(audioPacket);
+                            // Enviar el DatagramPacket
+                            udpSocket.send(audioPacket);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -250,7 +295,9 @@ public class Chatters {
             if (offset >= audioData.length) {
                 for (Person user : clientes) {
                     if (shouldPlayAudioForUser(clientName, receiver, user)) {
-                        user.getOut().println("(System) Playing audio...");
+                        if (!hasGroup || user.getGroup().equals(getUser(clientName).getGroup()) || receiver != null) {
+                            user.getOut().println("(System) Playing audio...");
+                        }
                     } else {
                         user.getOut().println("(System) Audio sent.");
                     }

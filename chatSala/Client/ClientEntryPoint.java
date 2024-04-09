@@ -121,8 +121,10 @@ public class ClientEntryPoint {
                     System.out.println("Enter the group name:");
                     out.println("join group:" + userKeyboard.readLine());
                 } else if (message.equalsIgnoreCase("leave group")) {
+                    out.println("leave group");
+                } else if (message.equalsIgnoreCase("delete group")) {
                     System.out.println("Enter the group name:");
-                    out.println("leave group:" + userKeyboard.readLine());
+                    out.println("delete group:" + userKeyboard.readLine());
                 } else if (message.equals("call")) {
                     System.out.println("Enter 'stop call' to stop the call.");
                     out.println("calling");
