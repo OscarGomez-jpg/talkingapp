@@ -59,7 +59,7 @@ public class ClientEntryPoint {
         this.username = "";
         this.lector = new Lector(socket);
         this.lectorThread = new Thread(lector);
-        this.format = new AudioFormat(8000.0f, 16, 1, true, true);
+        this.format = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 8000.0f, 16, 1, 2, 8000.0f, true);
         this.microphone = AudioSystem.getTargetDataLine(format);
         this.speakers = AudioSystem.getSourceDataLine(format);
         this.voiceNoteFormat = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE_IN_BITS, CHANNELS, SIGNED, BIG_ENDIAN);
