@@ -102,3 +102,12 @@ Debe implementarse una lógica para enviar y recibir mensajes entre el servidor 
 - Desconectar cliente: ingresar `disconnect`
 - Descripción: Este comando desconecta al cliente del servidor.
 
+## Comandos de Group
+- Crear Grupo: ingresar `create group` despues aparece que ingrese nombre de grupo.
+- Descripción: Este comando permite crear un grupo y requiere despues de uso ingresar nombre de grupo.
+
+- Ingresar a Grupo: ingresar `join group` despues ingresas nombre de grupo
+- Descripción: Este comando permite ingresar a un grupo pre existente si estas en un grupo solo llegan mensajes a los del mismo grupo.
+
+- Salir de Grupo: ingresar `leave group`
+- Descripcion: Este comando permite salirse del grupo en que estas en el momento
