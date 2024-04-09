@@ -20,9 +20,13 @@ public class Chatters {
     // Atributo para almacenar el historial de chat
     private List<String> chatHistory;
 
+    // Grupos de chat
+    private List<String> chatGroups;
+
     public Chatters() {
         clientes = new HashSet<>();
         chatHistory = new ArrayList<>();
+        chatGroups = new ArrayList<>();
     }
 
     // Metodo para verificar si un usuario existe, retorna true si existe
@@ -62,20 +66,46 @@ public class Chatters {
         return null;
     }
 
+    // Metodo para obtener la lista de usuarios conectados
+    public Set<Person> getUsers() {
+        return clientes;
+    }
+
     // Metodo para enviar un mensaje a todos los usuarios
     public void broadcastMessage(String emisor, String message) {
         synchronized (clientes) {
             for (Person user : clientes) {
-                if (!user.getName().equalsIgnoreCase(emisor)) {
-                    try {
-                        if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
-                            user.getOut().println(message);
-                        } else {
-                            System.out.println("User " + emisor + " said: " + message);
-                            user.getOut().println(emisor + ": " + message);
+                if (user.getName().equals(emisor)) {
+                    if (user.getGroups().isEmpty()) {
+                        if (!user.getName().equalsIgnoreCase(emisor) && user.getGroups().isEmpty()) {
+                            try {
+                                if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
+                                    user.getOut().println(message);
+                                } else {
+                                    System.out.println("User " + emisor + " said: " + message);
+                                    user.getOut().println(emisor + ": " + message);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } else {
+                        for (String group : user.getGroups()) {
+                            for (Person userGroup : clientes) {
+                                if (userGroup.getGroups().contains(group) && userGroup != user) {
+                                    try {
+                                        if (message.contains("has joined the group.") || message.contains("has left the group.")) {
+                                            userGroup.getOut().println(message);
+                                        } else {
+                                            System.out.println("User " + emisor + " said: " + message);
+                                            userGroup.getOut().println(emisor + ": " + message);
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -98,6 +128,59 @@ public class Chatters {
             }
         } else {
             broadcastMessage(clientName, privateMessage);
+        }
+    }
+
+    // Metodo para crear un grupo de chat
+    public void createGroup(String clientName, String groupName) {
+        for (Person user : clientes) {
+            if (user.getName().equalsIgnoreCase(clientName)) {
+                if (chatGroups.contains(groupName)) {
+                    user.getOut().println("Group already exists.");
+                    return;
+                }
+                chatGroups.add(groupName);
+                user.addGroup(groupName);
+                user.getOut().println("Group " + groupName + " has been created.");
+            }
+        }
+    }
+
+    // Metodo para unirse a un grupo de chat
+    public void joinGroup(String clientName, String groupName) {
+        for (Person user : clientes) {
+            if (user.getName().equalsIgnoreCase(clientName)) {
+                if (!chatGroups.contains(groupName)) {
+                    user.getOut().println("Group does not exist.");
+                    return;
+                } else if (user.getGroups().contains(groupName)) {
+                    user.getOut().println("You are already in the group.");
+                    return;
+                } else {
+                    user.addGroup(groupName);
+                    user.getOut().println("You have joined the group.");
+                    broadcastMessage(clientName, clientName + " has joined the group.");
+                }
+            }
+        }
+    }
+
+    // Metodo para eliminar a un usuario de un grupo
+    public void deleteFromGroup(String clientName, String groupName) {
+        for (Person user : clientes) {
+            if (user.getName().equalsIgnoreCase(clientName)) {
+                if (!chatGroups.contains(groupName)) {
+                    user.getOut().println("Group does not exist.");
+                    return;
+                } else if (!user.getGroups().contains(groupName)) {
+                    user.getOut().println("You are not in the group.");
+                    return;
+                } else {
+                    broadcastMessage(clientName, clientName + " has left the group.");
+                    user.removeGroup(groupName);
+                    user.getOut().println("You have been removed from the group.");
+                }
+            }
         }
     }
 

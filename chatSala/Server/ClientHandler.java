@@ -60,13 +60,15 @@ class ClientHandler implements Runnable {
             }
         } while (clientes.nameExists(clientName));
 
-        // notificar a los demas clientes que un nuevo usuario se ha unido
-        clientes.broadcastMessage("", clientName + " has joined the chat.");
-        clientes.addChatHistory("", clientName + " has joined the chat.");
-
         //agregar al nuevo usuario a chatters junto con su canal de salida out
         Person newCLient = new Person(clientName, out, address, udpPort, outAudio);
         clientes.addUser(newCLient);
+
+        // notificar a los demas clientes que un nuevo usuario se ha unido
+        if (clientes.getUsers().size() > 1) {
+            clientes.broadcastMessage("", clientName + " has joined the chat.");
+            clientes.addChatHistory("", clientName + " has joined the chat.");
+        }
     }
 
     private void chat() {
@@ -115,6 +117,44 @@ class ClientHandler implements Runnable {
             isRecording = false;
         } else if (message.equalsIgnoreCase("calling")) {
             clientes.handleCalls(clientName);
+        } else if (message.contains("create group")) {
+            if (message.contains(":")) {
+                String[] parts = message.split(":", 2);
+                String groupName = parts[1].trim();
+                clientes.createGroup(clientName, groupName);
+            } else {
+                message = "Invalid group name";
+                clientes.broadcastMessage(clientName, message);
+            }
+        } else if (message.contains("join group")) {
+            if (message.contains(":")) {
+                String[] parts = message.split(":", 2);
+                String groupName = parts[1].trim();
+                clientes.joinGroup(clientName, groupName);
+            } else {
+                message = "Invalid group name";
+                clientes.broadcastMessage(clientName, message);
+            }
+        } else if (message.contains("leave group")) {
+            if (message.contains(":")) {
+                String[] parts = message.split(":", 2);
+                String groupName = parts[1].trim();
+                clientes.deleteFromGroup(clientName, groupName);
+            } else {
+                message = "Invalid group name";
+                clientes.broadcastMessage(clientName, message);
+            }
+        /*
+        } else if (message.contains("delete group")) {
+            if (message.contains(":")) {
+                String[] parts = message.split(":", 2);
+                String groupName = parts[1].trim();
+                clientes.deleteGroup(clientName, groupName);
+            } else {
+                message = "Invalid group name";
+                clientes.broadcastMessage(clientName, message);
+            }
+            */
         } else {
             if (message.contains(":")) {
                 handlePrivateMessage(message);

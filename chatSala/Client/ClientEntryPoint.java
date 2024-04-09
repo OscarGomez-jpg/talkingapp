@@ -114,6 +114,15 @@ public class ClientEntryPoint {
                         e.printStackTrace();
                     }
                     break;
+                } else if (message.equalsIgnoreCase("create group")) {
+                    System.out.println("Enter the group name:");
+                    out.println("create group:" + userKeyboard.readLine());
+                } else if (message.equalsIgnoreCase("join group")) {
+                    System.out.println("Enter the group name:");
+                    out.println("join group:" + userKeyboard.readLine());
+                } else if (message.equalsIgnoreCase("leave group")) {
+                    System.out.println("Enter the group name:");
+                    out.println("leave group:" + userKeyboard.readLine());
                 } else if (message.equals("call")) {
                     System.out.println("Enter 'stop call' to stop the call.");
                     out.println("calling");
