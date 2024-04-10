@@ -99,7 +99,7 @@ public class Chatters {
                     } else if (isGroupMessage && !user.getGroup().equals("")) {
                         if (user.getGroup().equals(getUser(emisor).getGroup())) {
                             try {
-                                if (message.contains("has joined the group.") || message.contains("has left the group.")) {
+                                if (message.contains("has joined the group.") || message.contains("has left the group.") || message.contains("has joined the chat.") || message.contains("has left the chat.")) {
                                     user.getOut().println(message);
                                 } else {
                                     System.out.println("(Group: " + user.getGroup() + "): " + "User " + emisor + " said: " + message);

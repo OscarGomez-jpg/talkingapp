@@ -98,8 +98,8 @@ class ClientHandler implements Runnable {
 
     private void handleDisconnect() {
         System.out.println(clientName + " has left the chat.");
+        clientes.broadcastMessage(clientName, clientName + " has left the chat.");
         clientes.removeUser(clientes.getUser(clientName));
-        clientes.broadcastMessage("", clientName + " has left the chat.");
 
         saveChatHistory("");
 
