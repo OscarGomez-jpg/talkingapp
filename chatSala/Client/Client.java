@@ -4,7 +4,7 @@ import java.net.UnknownHostException;
 import javax.sound.sampled.LineUnavailableException;
 
 public class Client {
-    private static final String SERVER_IP = "192.168.26.144";
+    private static final String SERVER_IP = "192.168.1.4";
     private static final int TCPPORT = 6789;
     private static final int SERVER_UDP_SOCKET = 9876;
 

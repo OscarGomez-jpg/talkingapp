@@ -88,7 +88,7 @@ public class Chatters {
                     if (!isGroupMessage && user.getGroup().equals("")) {
                         try {
                             if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
-                                user.getOut().println(message);
+                                user.getOut().println("(System) " + message);
                             } else {
                                 System.out.println("User " + emisor + " said: " + message);
                                 user.getOut().println(emisor + ": " + message);
@@ -99,7 +99,7 @@ public class Chatters {
                     } else if (isGroupMessage && !user.getGroup().equals("")) {
                         if (user.getGroup().equals(getUser(emisor).getGroup())) {
                             try {
-                                if (message.contains("has joined the chat.") || message.contains("has left the chat.")) {
+                                if (message.contains("has joined the group.") || message.contains("has left the group.")) {
                                     user.getOut().println(message);
                                 } else {
                                     System.out.println("(Group: " + user.getGroup() + "): " + "User " + emisor + " said: " + message);
@@ -122,6 +122,10 @@ public class Chatters {
                 for (Person user : clientes) {
                     if (user.getName().equalsIgnoreCase(receiver)) {
                         try {
+                            if (user.getName().equalsIgnoreCase(clientName)) {
+                                user.getOut().println("(System) You cannot send a private message to yourself.");
+                                return;
+                            }
                             user.getOut().println("(Private chat) " + clientName + ": " + privateMessage);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -139,12 +143,12 @@ public class Chatters {
         for (Person user : clientes) {
             if (user.getName().equalsIgnoreCase(clientName)) {
                 if (chatGroups.contains(groupName)) {
-                    user.getOut().println("Group already exists.");
+                    user.getOut().println("(System) Group already exists.");
                     return;
                 }
                 chatGroups.add(groupName);
                 user.setGroup(groupName);
-                user.getOut().println("Group " + groupName + " has been created.");
+                user.getOut().println("(System) Group " + groupName + " has been created.");
             }
         }
     }
@@ -154,14 +158,14 @@ public class Chatters {
         for (Person user : clientes) {
             if (user.getName().equalsIgnoreCase(clientName)) {
                 if (!chatGroups.contains(groupName)) {
-                    user.getOut().println("Group does not exist.");
+                    user.getOut().println("(System) Group does not exist.");
                     return;
                 } else if (user.getGroup().equalsIgnoreCase(groupName)) {
-                    user.getOut().println("You are already in the group.");
+                    user.getOut().println("(System) You are already in the group.");
                     return;
                 } else {
                     user.setGroup(groupName);
-                    user.getOut().println("You have joined the group.");
+                    user.getOut().println("(System) You have joined the group " + groupName + ".");
                     broadcastMessage(clientName, clientName + " has joined the group.");
                 }
             }
@@ -173,12 +177,12 @@ public class Chatters {
         for (Person user : clientes) {
             if (user.getName().equalsIgnoreCase(clientName)) {
                 if (user.getGroup().equals("")) {
-                    user.getOut().println("You are not in a group.");
+                    user.getOut().println("(System) You are not in a group.");
                     return;
                 } else {
-                    broadcastMessage(clientName, clientName + " has left the group.");
+                    broadcastMessage(clientName, "(System) " + clientName + " has left the group.");
+                    user.getOut().println("(System) You have been removed from the group " + user.getGroup() + ".");
                     user.deleteGroup();
-                    user.getOut().println("You have been removed from the group.");
                 }
             }
         }
@@ -197,11 +201,11 @@ public class Chatters {
             for (Person user : clientes) {
                 if (user.getName().equalsIgnoreCase(clientName)) {
                     if (!chatGroups.contains(groupName)) {
-                        user.getOut().println("Group does not exist.");
+                        user.getOut().println("(System) Group does not exist.");
                         return;
                     } else {
                         chatGroups.remove(groupName);
-                        user.getOut().println("Group has been deleted.");
+                        user.getOut().println("(System) Group has been deleted.");
                         broadcastMessage(clientName, "Group " + groupName + " has been deleted.");
                     }
                 }
@@ -261,8 +265,8 @@ public class Chatters {
         int offset = 0;
 
         for (Person user : clientes) {
-            if (shouldPlayAudioForUser(clientName, receiver, user) || receiver != null) {
-                if (!hasGroup || user.getGroup().equals(getUser(clientName).getGroup())) {
+            if (shouldPlayAudioForUser(clientName, receiver, user)) {
+                if ((!hasGroup && user.getGroup().equals("")) || user.getGroup().equals(getUser(clientName).getGroup()) || receiver != null) {
                     user.getOut().println(prefix + clientName + " has sent an audio.");
                 }
             }
@@ -310,21 +314,37 @@ public class Chatters {
     public void handleCalls(String clientName) {
         byte[] buffer = new byte[160];
         chatHistory.add(clientName + ": [Calling]");
+        Person[] sender = new Person[1];
+        for (Person user : clientes) {
+            if (user.getName().equalsIgnoreCase(clientName)) {
+                sender[0] = user;
+                user.setCall(true);
+            }
+        }
+        for (Person user : clientes) {
+            if (!user.getName().equalsIgnoreCase(clientName) && user.getGroup().equals(sender[0].getGroup())) {
+                if (!user.isCall()) {
+                    user.getOut().println("(System) " + clientName + " start a call. Please enter 'call' to join the call.");
+                } else {
+                    user.getOut().println("(System) " + clientName + " join the call.");
+                }
+            }
+        }
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         Thread callThread = new Thread(() -> {
-            createCallThread(clientName, packet);
+            createCallThread(clientName, packet, sender[0]);
         });
 
         callThread.start();
     }
 
-    private void createCallThread(String clientName, DatagramPacket packet) {
+    private void createCallThread(String clientName, DatagramPacket packet, Person sender) {
         while (true) {
             try {
                 udpSocket.receive(packet);
 
                 for (Person user : clientes) {
-                    if (!user.getName().equalsIgnoreCase(clientName)) {
+                    if (!user.getName().equalsIgnoreCase(clientName) && user.getGroup().equals(sender.getGroup())) {
                         DatagramPacket resending = new DatagramPacket(packet.getData(), packet.getLength(),
                                 user.getAddress(), user.getPort());
                         udpSocket.send(resending);
@@ -332,6 +352,21 @@ public class Chatters {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    public void stopCall(String clientName) {
+        Person[] sender = new Person[1];
+        for (Person user : clientes) {
+            if (user.getName().equalsIgnoreCase(clientName)) {
+                user.setCall(false);
+                sender[0] = user;
+            }
+        }
+        for (Person user : clientes) {
+            if (!user.getName().equalsIgnoreCase(clientName) && user.getGroup().equals(sender[0].getGroup()) && user.isCall()) {
+                user.getOut().println("(System) " + clientName + " leave the call.");
             }
         }
     }
