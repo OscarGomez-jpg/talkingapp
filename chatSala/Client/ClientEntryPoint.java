@@ -106,40 +106,40 @@ public class ClientEntryPoint {
         String message;
         try {
             while ((message = userKeyboard.readLine()) != null) {
-                if (message.equals("disconnect")) {
-                    out.println("DISCONNECT");
+                if (message.equals("/disconnect")) {
+                    out.println("/disconnect");
                     try {
                         socket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     break;
-                } else if (message.equalsIgnoreCase("create group")) {
+                } else if (message.equalsIgnoreCase("/create group")) {
                     System.out.println("Enter the group name:");
-                    out.println("create group:" + userKeyboard.readLine());
-                } else if (message.equalsIgnoreCase("join group")) {
+                    out.println("/create group:" + userKeyboard.readLine());
+                } else if (message.equalsIgnoreCase("/join group")) {
                     System.out.println("Enter the group name:");
-                    out.println("join group:" + userKeyboard.readLine());
-                } else if (message.equalsIgnoreCase("leave group")) {
-                    out.println("leave group");
-                } else if (message.equalsIgnoreCase("delete group")) {
+                    out.println("/join group:" + userKeyboard.readLine());
+                } else if (message.equalsIgnoreCase("/leave group")) {
+                    out.println("/leave group");
+                } else if (message.equalsIgnoreCase("/delete group")) {
                     System.out.println("Enter the group name:");
-                    out.println("delete group:" + userKeyboard.readLine());
-                } else if (message.equals("call")) {
+                    out.println("/delete group:" + userKeyboard.readLine());
+                } else if (message.equals("/call")) {
                     System.out.println("Enter 'stop call' to stop the call.");
-                    out.println("calling");
+                    out.println("/calling");
                     call();
-                } else if (message.equals("stop call")) {
+                } else if (message.equals("/stop call")) {
                     stopCall = true;
                     stopCall();
-                } else if (message.equals("record") || message.contains("record:")) {
-                    out.println("[recording] " + message);
+                } else if (message.equals("/record") || message.contains("/record:")) {
+                    out.println("/[recording] " + message);
                     this.message = message;
                     Thread recordThread = new Thread(() -> {
                         startRecording();
                     });
                     recordThread.start();
-                } else if (message.equals("detain") && ClientEntryPoint.RECORDING) {
+                } else if (message.equals("/detain") && ClientEntryPoint.RECORDING) {
                     ClientEntryPoint.RECORDING = false;
                 } else if (!message.trim().isEmpty()) {
                     out.println(message); // Enviar mensaje al servidor si no está vacío

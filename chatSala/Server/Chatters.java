@@ -356,7 +356,7 @@ public class Chatters {
             chatHistory.add(message);
         } else if (message == "") {
             chatHistory.add(message + "\n" + clientName + " has left the chat.");
-        } else if (!message.contains("Calling") && !message.contains("recording") && !message.contains("stop") && !message.contains("record") && !message.contains("calling")) {
+        } else if (!message.contains("/Calling") && !message.contains("/recording") && !message.contains("/stop") && !message.contains("record") && !message.contains("/calling")) {
             chatHistory.add(clientName + ": " + message);
         }	
     }
@@ -381,6 +381,4 @@ public class Chatters {
     public void setTcpSocket(Socket tcpSocket) {
         this.tcpSocket = tcpSocket;
     }
-
-    
 }
