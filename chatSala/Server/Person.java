@@ -2,12 +2,15 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 
+import javax.sound.sampled.AudioFormat;
+
 //objeto que representa un cliente o usuario o persona en el chat
 public class Person {
     private String name; //nombre de usuario
     private InetAddress address;
     private int port;
     private String group; //grupos a los que pertenece
+    private boolean call; //si esta en una llamada
     PrintWriter out;    //canal para enviarle mensajes a ese usuario
     OutputStream outAudio; //canal para enviarle audio a ese usuario
 
@@ -18,6 +21,7 @@ public class Person {
         this.port = port;
         this.outAudio = outAudio;
         this.group = "";
+        this.call = false;
     }
    
     public String getName() {
@@ -58,5 +62,18 @@ public class Person {
 
     public void deleteGroup() {
         this.group = "";
+    }
+
+    public boolean isCall() {
+        return call;
+    }
+
+    public void setCall(boolean call) {
+        this.call = call;
+    }
+
+    public void playAudio(byte[] audioData, AudioFormat format) {
+        PlayerRecording player = new PlayerRecording(format);
+        player.initiateAudio(audioData);
     }
 }

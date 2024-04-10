@@ -57,6 +57,7 @@ class ClientHandler implements Runnable {
                 out.println("REJECTED");
             } else {
                 out.println("ACCEPTED");
+                out.println("(System) Welcome " + clientName + " to the chat!");
             }
         } while (clientes.nameExists(clientName));
 
@@ -65,10 +66,8 @@ class ClientHandler implements Runnable {
         clientes.addUser(newCLient);
 
         // notificar a los demas clientes que un nuevo usuario se ha unido
-        if (clientes.getUsers().size() > 1) {
-            clientes.broadcastMessage("", clientName + " has joined the chat.");
-            clientes.addChatHistory("", clientName + " has joined the chat.");
-        }
+        clientes.broadcastMessage(clientName, clientName + " has joined the chat.");
+        clientes.addChatHistory(clientName, clientName + " has joined the chat.");
     }
 
     private void chat() {
@@ -99,8 +98,8 @@ class ClientHandler implements Runnable {
 
     private void handleDisconnect() {
         System.out.println(clientName + " has left the chat.");
+        clientes.broadcastMessage(clientName, clientName + " has left the chat.");
         clientes.removeUser(clientes.getUser(clientName));
-        clientes.broadcastMessage("", clientName + " has left the chat.");
 
         saveChatHistory("");
 
@@ -117,19 +116,21 @@ class ClientHandler implements Runnable {
             isRecording = false;
         } else if (message.equalsIgnoreCase("/calling")) {
             clientes.handleCalls(clientName);
+        } else if (message.equals("[stop call]")) {
+            clientes.stopCall(clientName);
         } else if (message.contains("/create group")) {
-            if (message.contains(":")) {
-                String[] parts = message.split(":", 2);
-                String groupName = parts[1].trim();
+            String[] parts = message.split(":", 2);
+            String groupName = parts[1].trim();
+            if (!groupName.equals("")) {
                 clientes.createGroup(clientName, groupName);
             } else {
                 message = "Invalid group name";
                 clientes.broadcastMessage(clientName, message);
             }
         } else if (message.contains("/join group")) {
-            if (message.contains(":")) {
-                String[] parts = message.split(":", 2);
-                String groupName = parts[1].trim();
+            String[] parts = message.split(":", 2);
+            String groupName = parts[1].trim();
+            if (!groupName.equals("")) {
                 clientes.joinGroup(clientName, groupName);
             } else {
                 message = "Invalid group name";
