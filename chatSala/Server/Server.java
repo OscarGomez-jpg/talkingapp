@@ -10,7 +10,7 @@ public class Server {
         Chatters clientes = new Chatters(); // lista de clientes
 
         // Crear un ThreadPool
-        ExecutorService executor = Executors.newFixedThreadPool(8);
+        ExecutorService executor = Executors.newFixedThreadPool(20);
 
         try {
             try (ServerSocket serverSocketTCP = new ServerSocket(TCPPORT)) {
