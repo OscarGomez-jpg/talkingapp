@@ -115,7 +115,7 @@ public class ClientEntryPoint {
                     }
                     break;
                 } else if (message.equalsIgnoreCase("/create group")) {
-                    System.out.print("(System) Enter the group name: ");
+                    System.out.println("(System) Enter the group name: ");
                     String groupName = userKeyboard.readLine();
                     if (!groupName.trim().isEmpty()) {
                         out.println("[create group]:" + groupName);
@@ -131,7 +131,6 @@ public class ClientEntryPoint {
                 } else if (message.equalsIgnoreCase("/delete group")) {
                     System.out.println("(System) Enter the group name:");
                     out.println("[delete group]:" + userKeyboard.readLine());
-                    System.out.println("To exit the group type /leave group");
                 } else if (message.equalsIgnoreCase("/call")) {
                     System.out.println("Enter '/stop call' to stop the call.");
                     out.println("[calling]");
@@ -149,6 +148,8 @@ public class ClientEntryPoint {
                     recordThread.start();
                 } else if (message.equals("/detain") && ClientEntryPoint.RECORDING) {
                     ClientEntryPoint.RECORDING = false;
+                } else if (message.substring(0, 1).equals("/")) {
+                    System.out.println("Comando no reconocido.");
                 } else if (!message.trim().isEmpty()) {
                     out.println(message); // Enviar mensaje al servidor si no está vacío
                 }
