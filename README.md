@@ -81,33 +81,33 @@ Debe implementarse una lógica para enviar y recibir mensajes entre el servidor 
 
 ### Enviar nota de voz grupal:
 
-- Iniciar grabación: ingresar `record`
-- Parar grabación: ingresar `detain`
+- Iniciar grabación: ingresar `/record`
+- Parar grabación: ingresar `/detain`
 - Descripción: Estos comandos inician y detienen la grabación de una nota de voz para enviar a todos los usuarios conectados.
 
 ### Enviar nota de voz privada:
 
-- Iniciar grabación: ingresar `record: <receptor>`
-- Parar grabación: ingresar `detain`
+- Iniciar grabación: ingresar `/record: <receptor>`
+- Parar grabación: ingresar `/detain`
 - Descripción: Estos comandos inician y detienen la grabación de una nota de voz para enviar al usuario especificado.
 
 ## Comandos de Llamada
 
-- Iniciar llamada: ingresar `call`
-- Detener llamada: ingresar `stop call`
+- Iniciar llamada: ingresar `/call`
+- Detener llamada: ingresar `/stop call`
 - Descripción: Estos comandos inician y detienen una llamada con todos los usuarios conectados.
 
 ## Comandos de Desconexión
 
-- Desconectar cliente: ingresar `disconnect`
+- Desconectar cliente: ingresar `/disconnect`
 - Descripción: Este comando desconecta al cliente del servidor.
 
 ## Comandos de Group
-- Crear Grupo: ingresar `create group` despues aparece que ingrese nombre de grupo.
+- Crear Grupo: ingresar `/create group` despues aparece que ingrese nombre de grupo.
 - Descripción: Este comando permite crear un grupo y requiere despues de uso ingresar nombre de grupo.
 
-- Ingresar a Grupo: ingresar `join group` despues ingresas nombre de grupo
+- Ingresar a Grupo: ingresar `/join group` despues ingresas nombre de grupo
 - Descripción: Este comando permite ingresar a un grupo pre existente si estas en un grupo solo llegan mensajes a los del mismo grupo.
 
-- Salir de Grupo: ingresar `leave group`
+- Salir de Grupo: ingresar `/leave group`
 - Descripcion: Este comando permite salirse del grupo en que estas en el momento
