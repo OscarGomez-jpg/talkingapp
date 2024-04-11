@@ -235,7 +235,7 @@ public class Chatters {
         if (user == null) {
             return;
         }
-        user.getOut().println("(System) Recording audio...\n(System) Please enter 'detain' to stop recording.");
+        user.getOut().println("(System) Recording audio...\n(System) Please enter '/detain' to stop recording.");
         chatHistory.add(clientName + ": [Sending audio]");
     }
 

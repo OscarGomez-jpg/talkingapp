@@ -107,7 +107,7 @@ public class ClientEntryPoint {
         try {
             while ((message = userKeyboard.readLine()) != null) {
                 if (message.equals("/disconnect")) {
-                    out.println("/disconnect");
+                    out.println("[disconnect]");
                     try {
                         socket.close();
                     } catch (IOException e) {
@@ -115,32 +115,33 @@ public class ClientEntryPoint {
                     }
                     break;
                 } else if (message.equalsIgnoreCase("/create group")) {
-                    System.out.println("(System) Enter the group name:");
+                    System.out.print("(System) Enter the group name: ");
                     String groupName = userKeyboard.readLine();
                     if (!groupName.trim().isEmpty()) {
-                        out.println("/create group:" + groupName);
+                        out.println("[create group]:" + groupName);
                     }
                 } else if (message.equalsIgnoreCase("/join group")) {
                     System.out.println("(System) Enter the group name:");
                     String groupName = userKeyboard.readLine();
                     if (!groupName.trim().isEmpty()) {
-                        out.println("/join group:" + groupName);
+                        out.println("[join group]:" + groupName);
                     }
                 } else if (message.equalsIgnoreCase("/leave group")) {
-                    out.println("/leave group");
+                    out.println("[leave group]");
                 } else if (message.equalsIgnoreCase("/delete group")) {
                     System.out.println("(System) Enter the group name:");
-                    out.println("/delete group:" + userKeyboard.readLine());
+                    out.println("[delete group]:" + userKeyboard.readLine());
+                    System.out.println("To exit the group type /leave group");
                 } else if (message.equalsIgnoreCase("/call")) {
-                    System.out.println("Enter 'stop call' to stop the call.");
-                    out.println("/calling");
+                    System.out.println("Enter '/stop call' to stop the call.");
+                    out.println("[calling]");
                     call();
                 } else if (message.equals("/stop call")) {
                     stopCall = true;
                     stopCall();
                     out.println("[stop call]");
                 } else if (message.equals("/record") || message.contains("/record:")) {
-                    out.println("/[recording] " + message);
+                    out.println("[recording]" + message);
                     this.message = message;
                     Thread recordThread = new Thread(() -> {
                         startRecording();

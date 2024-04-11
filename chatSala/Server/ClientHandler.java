@@ -74,7 +74,7 @@ class ClientHandler implements Runnable {
         try {
             String message;
             while ((message = in.readLine()) != null || audioSended && !clientSocket.isClosed()) {
-                if (message.equals("/disconnect")) {
+                if (message.equals("[disconnect]")) {
                     handleDisconnect();
                     break;
                 }
@@ -108,17 +108,17 @@ class ClientHandler implements Runnable {
     }
 
     private void handleMessages(String message) {
-        if (message.contains("/recording")) {
+        if (message.contains("[recording]")) {
             isRecording = true;
             clientes.recordAudio(clientName, message);
-        } else if (message.contains("/[stop]") && isRecording) {
+        } else if (message.contains("[stop]") && isRecording) {
             audioSended = true;
             isRecording = false;
-        } else if (message.equalsIgnoreCase("/calling")) {
+        } else if (message.equalsIgnoreCase("[calling]")) {
             clientes.handleCalls(clientName);
         } else if (message.equals("[stop call]")) {
             clientes.stopCall(clientName);
-        } else if (message.contains("/create group")) {
+        } else if (message.contains("[create group]")) {
             String[] parts = message.split(":", 2);
             String groupName = parts[1].trim();
             if (!groupName.equals("")) {
@@ -127,7 +127,7 @@ class ClientHandler implements Runnable {
                 message = "Invalid group name";
                 clientes.broadcastMessage(clientName, message);
             }
-        } else if (message.contains("/join group")) {
+        } else if (message.contains("[join group]")) {
             String[] parts = message.split(":", 2);
             String groupName = parts[1].trim();
             if (!groupName.equals("")) {
@@ -136,9 +136,9 @@ class ClientHandler implements Runnable {
                 message = "Invalid group name";
                 clientes.broadcastMessage(clientName, message);
             }
-        } else if (message.contains("/leave group")) {
+        } else if (message.contains("[leave group]")) {
             clientes.deleteFromGroup(clientName);
-        } else if (message.contains("/delete group")) {
+        } else if (message.contains("[delete group]")) {
             if (message.contains(":")) {
                 String[] parts = message.split(":", 2);
                 String groupName = parts[1].trim();
@@ -148,7 +148,7 @@ class ClientHandler implements Runnable {
                 clientes.broadcastMessage(clientName, message);
             }
         } else {
-            if (message.contains("/") && message.contains(":")) {
+            if (message.contains(":")) {
                 handlePrivateMessage(message);
             } else {
                 clientes.broadcastMessage(clientName, message);
